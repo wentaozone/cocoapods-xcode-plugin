@@ -45,13 +45,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 - (id)init
 {
     if (self = [super init]) {
-        NSMenuItem *topMenuItem = [[NSApp mainMenu] itemWithTitle:@"Product"];
-        if (topMenuItem) {
-            [[topMenuItem submenu] addItem:[NSMenuItem separatorItem]];
-            NSMenuItem *installDocsItem = [[NSMenuItem alloc] initWithTitle:@"Install DocSets for Pods" action:@selector(installOrUpdateDocSetsForPods) keyEquivalent:@""];
-            [installDocsItem setTarget:self];
-            [[topMenuItem submenu] addItem:installDocsItem];
-        }
+        [self addMenuItems];
     }
     return self;
 }
@@ -70,6 +64,16 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 }
 
 #pragma mark - Private
+
+- (void)addMenuItems {
+    NSMenuItem *topMenuItem = [[NSApp mainMenu] itemWithTitle:@"Product"];
+    if (topMenuItem) {
+        [[topMenuItem submenu] addItem:[NSMenuItem separatorItem]];
+        NSMenuItem *installDocsItem = [[NSMenuItem alloc] initWithTitle:@"Install DocSets for Pods" action:@selector(installOrUpdateDocSetsForPods) keyEquivalent:@""];
+        [installDocsItem setTarget:self];
+        [[topMenuItem submenu] addItem:installDocsItem];
+    }
+}
 
 - (void)extractPath:(NSString *)path {
     NSTask *task = [NSTask new];
