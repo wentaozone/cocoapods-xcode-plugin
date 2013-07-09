@@ -8,6 +8,6 @@
 
 #import <AppKit/AppKit.h>
 
-@interface cocoadocs : NSObject
+@interface Cocoadocs : NSObject
 
 @end
