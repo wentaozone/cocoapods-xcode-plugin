@@ -35,6 +35,7 @@
 		DAB0A1EB178DF5EE004A754B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DAB0A1EF178DF5EE004A754B /* CocoaPodsTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CocoaPodsTests-Prefix.pch"; sourceTree = "<group>"; };
 		DAB0A1F5178DF64E004A754B /* CocoaPodsSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CocoaPodsSpec.m; sourceTree = "<group>"; };
+		DAD58A90178E096700939F87 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +83,7 @@
 		8A80859C178B93C4006E56E3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DAD58A90178E096700939F87 /* Cocoa.framework */,
 				8A80859D178B93C4006E56E3 /* AppKit.framework */,
 				8A80859F178B93C4006E56E3 /* Foundation.framework */,
 				DAB0A1E5178DF5EE004A754B /* SenTestingKit.framework */,

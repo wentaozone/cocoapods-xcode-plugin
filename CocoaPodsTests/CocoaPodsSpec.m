@@ -24,6 +24,30 @@
 #import <Kiwi/Kiwi.h>
 #import "CocoaPods.h"
 
+
+static NSString * const kCocoaPodsPluginPath =
+    @"Library/Application Support/Developer/Shared/Xcode/Plug-ins/CocoaPods.xcplugin";
+
+
+NSMenu *createFakeMenu() {
+    NSMenuItem *productMenuItem = [[NSMenuItem alloc] initWithTitle:@"Product"
+                                                             action:nil
+                                                      keyEquivalent:@""];
+    productMenuItem.submenu = [[NSMenu alloc] initWithTitle:@"ProductSubmenu"];
+    [productMenuItem.submenu addItemWithTitle:@"Build For" action:nil keyEquivalent:@""];
+
+    NSMenu *fakeMenu = [[NSMenu alloc] initWithTitle:@"CocoaPodsTests"];
+    [fakeMenu addItem:productMenuItem];
+    return fakeMenu;
+}
+
+
+@interface CocoaPods (TestExtensions)
++ (void)pluginDidLoad:(NSBundle *)bundle;
+- (BOOL)doesPodfileExist;
+@end
+
+
 SPEC_BEGIN(CocoaPodsSpec)
 
 describe(@"CocoaPods", ^{
@@ -35,6 +59,85 @@ describe(@"CocoaPods", ^{
 
             [[[CocoaPods docsetInstallPath] should]
                 equal:@"Penny Lane"];
+        });
+    });
+
+    describe(@"+pluginDidLoad:", ^{
+        __block NSBundle *pluginBundle = nil;
+        __block CocoaPods *cocoaPods = nil;
+
+        beforeEach(^{
+            [NSApp stub:@selector(mainMenu) andReturn:createFakeMenu()];
+
+            NSString *pluginPath = [NSString pathWithComponents:@[NSHomeDirectory(), kCocoaPodsPluginPath]];
+            pluginBundle = [NSBundle bundleWithPath:pluginPath];
+
+            NSError *pluginLoadError = nil;
+            [pluginBundle loadAndReturnError:&pluginLoadError];
+            [pluginBundle.principalClass performSelector:@selector(pluginDidLoad:)
+                                              withObject:pluginBundle];
+
+            if (pluginLoadError) {
+                [NSException raise:NSInternalInconsistencyException
+                            format:@"Could not load CocoaPods plugin in order to run the test suite."];
+            }
+
+            cocoaPods = [[pluginBundle principalClass] new];
+        });
+
+        describe(@"'Product' menu", ^{
+            __block NSMenuItem *productMenuItem = nil;
+            beforeEach(^{
+                productMenuItem = [[NSApp mainMenu] itemWithTitle:@"Product"];
+            });
+
+            it(@"has the menu item 'Product > CocoaPods'", ^{
+                [[[productMenuItem.submenu itemWithTitle:@"CocoaPods"] shouldNot] beNil];
+            });
+
+            it(@"'Product > CocoaPods' is above 'Product > Build For'", ^{
+                [[theValue([productMenuItem.submenu indexOfItemWithTitle:@"CocoaPods"]) should]
+                    equal:theValue([productMenuItem.submenu indexOfItemWithTitle:@"Build For"] - 1)];
+            });
+
+            describe(@"'Product > CocoaPods' submenu", ^{
+                __block NSMenuItem *cocoaPodsMenuItem = nil;
+                beforeEach(^{
+                    cocoaPodsMenuItem = [productMenuItem.submenu itemWithTitle:@"CocoaPods"];
+                });
+
+                it(@"has the menu item 'Product > CocoaPods > Integrate Pods'", ^{
+                    [[[cocoaPodsMenuItem.submenu itemWithTitle:@"Integrate Pods"] shouldNot] beNil];
+                });
+
+                describe(@"'Product > CocoaPods > Integrate Pods' menu item", ^{
+                    __block NSMenuItem *integratePodsMenuItem = nil;
+                    beforeEach(^{
+                        integratePodsMenuItem =
+                            [cocoaPodsMenuItem.submenu itemWithTitle:@"Integrate Pods"];
+                    });
+
+                    context(@"a Podfile does not exist in the workspace directory", ^{
+                        beforeEach(^{
+                            [cocoaPods stub:@selector(doesPodfileExist) andReturn:theValue(NO)];
+                        });
+
+                        it(@"is disabled", ^{
+                            [[theValue([cocoaPods validateMenuItem:integratePodsMenuItem]) should] beNo];
+                        });
+                    });
+
+                    context(@"a Podfile does exist in the workspace directory", ^{
+                        beforeEach(^{
+                            [cocoaPods stub:@selector(doesPodfileExist) andReturn:theValue(YES)];
+                        });
+
+                        it(@"is enabled", ^{
+                            [[theValue([cocoaPods validateMenuItem:integratePodsMenuItem]) should] beYes];
+                        });
+                    });
+                });
+            });
         });
     });
 });
