@@ -23,7 +23,7 @@
 
 #import <AppKit/AppKit.h>
 
-@interface Cocoadocs : NSObject
+@interface CocoaPods : NSObject
 
 + (NSString *)docsetInstallPath;
 - (void)installOrUpdateDocSetsForPods;

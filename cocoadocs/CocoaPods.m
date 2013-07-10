@@ -1,0 +1,197 @@
+//
+//  Cocoadocs.m
+//
+//  Copyright (c) 2013 Delisa Mason. http://delisa.me
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to
+//  deal in the Software without restriction, including without limitation the
+//  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+//  IN THE SOFTWARE.
+
+#import "CocoaPods.h"
+
+static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
+static NSString *RELATIVE_DOCSET_PATH  = @"/Library/Developer/Shared/Documentation/DocSets/";
+static NSString *DOCSET_ARCHIVE_FORMAT = @"http://cocoadocs.org/docsets/%@/docset.xar";
+static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
+
+@implementation CocoaPods
+
++ (void)pluginDidLoad:(NSBundle *)plugin {
+    static id sharedPlugin = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedPlugin = [[self alloc] init];
+    });
+}
+
++ (NSString *)docsetInstallPath {
+    return [NSString pathWithComponents:@[NSHomeDirectory(), RELATIVE_DOCSET_PATH]];
+}
+
+- (id)init {
+    if (self = [super init]) {
+        [self addMenuItems];
+    }
+    return self;
+}
+
+- (void)installOrUpdateDocSetsForPods {
+    for (NSString *podName in [self installedPodNamesInWorkspace]) {
+        NSURL *docsetURL = [NSURL URLWithString:[NSString stringWithFormat:DOCSET_ARCHIVE_FORMAT, podName]];
+        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:docsetURL] queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *xarData, NSError *connectionError) {
+            if (xarData) {
+                NSString *tmpFilePath = [NSString pathWithComponents:@[NSTemporaryDirectory(), [NSString stringWithFormat:@"%@.xar",podName]]];
+                [xarData writeToFile:tmpFilePath atomically:YES];
+                [self extractPath:tmpFilePath];
+            }
+        }];
+    }
+}
+
+#pragma mark - Private
+
+- (void)addMenuItems {
+    NSMenuItem *topMenuItem = [[NSApp mainMenu] itemWithTitle:@"Product"];
+    if (topMenuItem) {
+        NSMenuItem *cocoaPodsMenu = [[NSMenuItem alloc] initWithTitle:@"CocoaPods" action:nil keyEquivalent:@""];
+        cocoaPodsMenu.submenu = [[NSMenu alloc] initWithTitle:@"CocoaPods"];
+        NSMenuItem *installDocsItem = [[NSMenuItem alloc] initWithTitle:@"Install Docs during Integration" action:@selector(toggleInstallDocsForPods) keyEquivalent:@""];
+        installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
+        NSMenuItem *installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods" action:@selector(integratePods) keyEquivalent:@""];
+        NSMenuItem *editPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Edit Podfile" action:@selector(openPodfileForEditing) keyEquivalent:@""];
+        NSMenuItem *updateCPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install/Update CocoaPods" action:@selector(installCocoaPods) keyEquivalent:@""];
+        [installDocsItem setTarget:self];
+        [installPodsItem setTarget:self];
+        [updateCPodsItem setTarget:self];
+        [editPodfileItem setTarget:self];
+        [[cocoaPodsMenu submenu] addItem:installPodsItem];
+        [[cocoaPodsMenu submenu] addItem:installDocsItem];
+        [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
+        [[cocoaPodsMenu submenu] addItem:editPodfileItem];
+        [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
+        [[topMenuItem submenu] insertItem:cocoaPodsMenu atIndex:[topMenuItem.submenu indexOfItemWithTitle:@"Build For"]];
+    }
+}
+
+- (void)toggleInstallDocsForPods {
+    [self setShouldInstallDocsForPods:![self shouldInstallDocsForPods]];
+}
+
+- (void)extractPath:(NSString *)path {
+    NSArray *arguments = @[@"-xf", path, @"-C", [CocoaPods docsetInstallPath]];
+    [self runShellCommand:XAR_EXECUTABLE withArgs:arguments directory:NSTemporaryDirectory() completion:nil];
+}
+
+- (void)integratePods {
+    [self runShellCommand:@"/usr/bin/pod" withArgs:@[@"install"] directory:[self keyWorkspaceDirectoryPath] completion:^(NSTask *t) {
+        if ([self shouldInstallDocsForPods]) {
+            [self installOrUpdateDocSetsForPods];
+        }
+    }];
+}
+
+- (void)installCocoaPods {
+    [self runShellCommand:@"/usr/bin/gem" withArgs:@[@"install", @"cocoapods"] directory:[self keyWorkspaceDirectoryPath] completion:nil];
+}
+
+- (void)openPodfileForEditing {
+    NSString *podfilePath = [[self keyWorkspaceDirectoryPath] stringByAppendingPathComponent:@"Podfile"];
+    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication] openFile:podfilePath];
+}
+
+- (void)runShellCommand:(NSString *)command withArgs:(NSArray *)args directory:(NSString *)directory completion:(void(^)(NSTask *t))completion{
+    __block NSMutableData *taskOutput = [NSMutableData new];
+    __block NSMutableData *taskError  = [NSMutableData new];
+
+    NSTask *task = [NSTask new];
+
+    task.currentDirectoryPath = directory;
+    task.launchPath = command;
+    task.arguments  = args;
+
+    task.standardOutput = [NSPipe pipe];
+    task.standardError  = [NSPipe pipe];
+
+    [[task.standardOutput fileHandleForReading] setReadabilityHandler:^(NSFileHandle *file) {
+        [taskOutput appendData:[file availableData]];
+    }];
+
+    [[task.standardError fileHandleForReading] setReadabilityHandler:^(NSFileHandle *file) {
+        [taskError appendData:[file availableData]];
+    }];
+
+    [task setTerminationHandler:^(NSTask *t) {
+        [t.standardOutput fileHandleForReading].readabilityHandler = nil;
+        [t.standardError fileHandleForReading].readabilityHandler  = nil;
+        NSString *output = [[NSString alloc] initWithData:taskOutput encoding:NSUTF8StringEncoding];
+        NSString *error = [[NSString alloc] initWithData:taskError encoding:NSUTF8StringEncoding];
+        NSLog(@"Shell command output: %@", output);
+        NSLog(@"Shell command error: %@", error);
+        if (completion) completion(t);
+    }];
+
+    @try {
+        [task launch];
+    }
+    @catch (NSException *exception) {
+        NSLog(@"Failed to launch: %@", exception);
+    }
+}
+
+- (NSArray *)installedPodNamesInWorkspace {
+    NSMutableArray *names = [NSMutableArray new];
+    id workspace = [self workspaceForKeyWindow];
+
+    id contextManager = [workspace valueForKey:@"_runContextManager"];
+    for (id scheme in [contextManager valueForKey:@"runContexts"]) {
+        NSString *schemeName = [scheme valueForKey:@"name"];
+        if ([schemeName hasPrefix:@"Pods-"]) {
+            [names addObject:[schemeName stringByReplacingOccurrencesOfString:@"Pods-" withString:@""]];
+        }
+    }
+    return names;
+}
+
+- (NSString *)keyWorkspaceDirectoryPath {
+    id workspace = [self workspaceForKeyWindow];
+    NSString *workspacePath = [[workspace valueForKey:@"representingFilePath"] valueForKey:@"_pathString"];
+    return [workspacePath stringByDeletingLastPathComponent];
+}
+
+- (id)workspaceForKeyWindow {
+    NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") valueForKey:@"workspaceWindowControllers"];
+
+    for (id controller in workspaceWindowControllers) {
+        if ([[controller valueForKey:@"window"] isKeyWindow]) {
+            return [controller valueForKey:@"_workspace"];
+            
+        }
+    }
+    return nil;
+}
+
+#pragma mark - Preferences
+
+- (BOOL) shouldInstallDocsForPods {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:DMMCocoaPodsIntegrateWithDocsKey];
+}
+
+- (void) setShouldInstallDocsForPods:(BOOL)enabled {
+    [[NSUserDefaults standardUserDefaults] setBool:enabled forKey:DMMCocoaPodsIntegrateWithDocsKey];
+}
+
+@end

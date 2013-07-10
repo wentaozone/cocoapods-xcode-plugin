@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>55C5CDF8-9E0C-4674-8371-039077EC74A4</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Cocoadocs</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>7DF76FBE-FCAE-41A0-9DFB-9DDF1D173C42</key>
+		<string>ssh://github.com/kattrali/cocoadocs-xcode-plugin.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Cocoadocs.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>7DF76FBE-FCAE-41A0-9DFB-9DDF1D173C42</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/kattrali/cocoadocs-xcode-plugin.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>7DF76FBE-FCAE-41A0-9DFB-9DDF1D173C42</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>7DF76FBE-FCAE-41A0-9DFB-9DDF1D173C42</string>
+			<key>IDESourceControlWCCName</key>
+			<string>cocoadocs</string>
+		</dict>
+	</array>
+</dict>
+</plist>
