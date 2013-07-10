@@ -32,6 +32,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 @interface CocoaPods ()
 @property (nonatomic, strong) NSMenuItem *installPodsItem;
 @property (nonatomic, strong) NSMenuItem *editPodfileItem;
+@property (nonatomic, strong) NSMenuItem *installDocsItem;
 @end
 
 
@@ -86,17 +87,17 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     if (topMenuItem) {
         NSMenuItem *cocoaPodsMenu = [[NSMenuItem alloc] initWithTitle:@"CocoaPods" action:nil keyEquivalent:@""];
         cocoaPodsMenu.submenu = [[NSMenu alloc] initWithTitle:@"CocoaPods"];
-        NSMenuItem *installDocsItem = [[NSMenuItem alloc] initWithTitle:@"Install Docs during Integration" action:@selector(toggleInstallDocsForPods) keyEquivalent:@""];
-        installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
+        self.installDocsItem = [[NSMenuItem alloc] initWithTitle:@"Install Docs during Integration" action:@selector(toggleInstallDocsForPods) keyEquivalent:@""];
+        self.installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
         self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods" action:@selector(integratePods) keyEquivalent:@""];
         self.editPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Edit Podfile" action:@selector(openPodfileForEditing) keyEquivalent:@""];
         NSMenuItem *updateCPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install/Update CocoaPods" action:@selector(installCocoaPods) keyEquivalent:@""];
-        [installDocsItem setTarget:self];
+        [self.installDocsItem setTarget:self];
         [self.installPodsItem setTarget:self];
         [updateCPodsItem setTarget:self];
         [self.editPodfileItem setTarget:self];
         [[cocoaPodsMenu submenu] addItem:self.installPodsItem];
-        [[cocoaPodsMenu submenu] addItem:installDocsItem];
+        [[cocoaPodsMenu submenu] addItem:self.installDocsItem];
         [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
         [[cocoaPodsMenu submenu] addItem:self.editPodfileItem];
         [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
@@ -217,6 +218,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (void) setShouldInstallDocsForPods:(BOOL)enabled {
     [[NSUserDefaults standardUserDefaults] setBool:enabled forKey:DMMCocoaPodsIntegrateWithDocsKey];
+    self.installDocsItem.state = enabled ? NSOnState : NSOffState;
 }
 
 @end
