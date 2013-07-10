@@ -28,6 +28,13 @@ static NSString *RELATIVE_DOCSET_PATH  = @"/Library/Developer/Shared/Documentati
 static NSString *DOCSET_ARCHIVE_FORMAT = @"http://cocoadocs.org/docsets/%@/docset.xar";
 static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
+
+@interface CocoaPods ()
+@property (nonatomic, strong) NSMenuItem *installPodsItem;
+@property (nonatomic, strong) NSMenuItem *editPodfileItem;
+@end
+
+
 @implementation CocoaPods
 
 + (void)pluginDidLoad:(NSBundle *)plugin {
@@ -62,6 +69,16 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     }
 }
 
+#pragma mark - NSMenuValidation Protocol Methods
+
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+    if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.editPodfileItem]) {
+        return [self doesPodfileExist];
+    }
+
+    return YES;
+}
+
 #pragma mark - Private
 
 - (void)addMenuItems {
@@ -71,17 +88,17 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
         cocoaPodsMenu.submenu = [[NSMenu alloc] initWithTitle:@"CocoaPods"];
         NSMenuItem *installDocsItem = [[NSMenuItem alloc] initWithTitle:@"Install Docs during Integration" action:@selector(toggleInstallDocsForPods) keyEquivalent:@""];
         installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
-        NSMenuItem *installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods" action:@selector(integratePods) keyEquivalent:@""];
-        NSMenuItem *editPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Edit Podfile" action:@selector(openPodfileForEditing) keyEquivalent:@""];
+        self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods" action:@selector(integratePods) keyEquivalent:@""];
+        self.editPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Edit Podfile" action:@selector(openPodfileForEditing) keyEquivalent:@""];
         NSMenuItem *updateCPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install/Update CocoaPods" action:@selector(installCocoaPods) keyEquivalent:@""];
         [installDocsItem setTarget:self];
-        [installPodsItem setTarget:self];
+        [self.installPodsItem setTarget:self];
         [updateCPodsItem setTarget:self];
-        [editPodfileItem setTarget:self];
-        [[cocoaPodsMenu submenu] addItem:installPodsItem];
+        [self.editPodfileItem setTarget:self];
+        [[cocoaPodsMenu submenu] addItem:self.installPodsItem];
         [[cocoaPodsMenu submenu] addItem:installDocsItem];
         [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
-        [[cocoaPodsMenu submenu] addItem:editPodfileItem];
+        [[cocoaPodsMenu submenu] addItem:self.editPodfileItem];
         [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
         [[topMenuItem submenu] insertItem:cocoaPodsMenu atIndex:[topMenuItem.submenu indexOfItemWithTitle:@"Build For"]];
     }
@@ -108,9 +125,17 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     [self runShellCommand:@"/usr/bin/gem" withArgs:@[@"install", @"cocoapods"] directory:[self keyWorkspaceDirectoryPath] completion:nil];
 }
 
+- (NSString *)podfilePath {
+    return [[self keyWorkspaceDirectoryPath] stringByAppendingPathComponent:@"Podfile"];
+}
+
+- (BOOL)doesPodfileExist {
+    return [[NSFileManager defaultManager] fileExistsAtPath:[self podfilePath]];
+}
+
 - (void)openPodfileForEditing {
-    NSString *podfilePath = [[self keyWorkspaceDirectoryPath] stringByAppendingPathComponent:@"Podfile"];
-    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication] openFile:podfilePath];
+    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
+                                                     openFile:[self podfilePath]];
 }
 
 - (void)runShellCommand:(NSString *)command withArgs:(NSArray *)args directory:(NSString *)directory completion:(void(^)(NSTask *t))completion{
