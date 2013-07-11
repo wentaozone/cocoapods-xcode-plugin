@@ -66,7 +66,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
         return [CCPWorkspaceManager currentWorkspaceHasPodfile];
 
     else if ([menuItem isEqual:self.createPodfileItem])
-        return [CCPWorkspaceManager currentWorkspaceDirectoryPath] != nil;
+        return [CCPWorkspaceManager currentWorkspaceDirectoryPath] && ![CCPWorkspaceManager currentWorkspaceHasPodfile];
 
     return YES;
 }
@@ -121,8 +121,14 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 }
 
 - (void)createPodfile {
+    NSString *podFilePath = [CCPWorkspaceManager currentWorkspacePodfilePath];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:podFilePath]) {
+        [[NSAlert alertWithMessageText:NSLocalizedString(@"warning.podfile.exists", nil) defaultButton:@"Okay" alternateButton:nil otherButton:nil informativeTextWithFormat:NSLocalizedString(@"warning.podfile.exists.info", nil)] runModal];
+        return;
+    }
+
     NSError *error = nil;
-    [[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:[CCPWorkspaceManager currentWorkspacePodfilePath] error:&error];
+    [[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:podFilePath error:&error];
     if (!error) [self openPodfileForEditing];
     else [[NSAlert alertWithError:error] runModal];
 }
