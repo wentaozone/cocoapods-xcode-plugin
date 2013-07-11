@@ -144,7 +144,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     [CCPShellHandler runShellCommand:@"/usr/bin/pod"
                             withArgs:@[@"install"]
                            directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
-                          completion:^(NSTask *t) {
+                          completion:^(NSString *stdOut, NSString *stdErr) {
         if ([self shouldInstallDocsForPods]) {
             [self installOrUpdateDocSetsForPods];
         }

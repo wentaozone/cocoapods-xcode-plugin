@@ -23,9 +23,18 @@
 
 #import "CCPShellHandler.h"
 
+@interface NSObject (IDEKit)
+
+- (void)insertText:(NSString *)text;
+- (void)insertNewline:(NSString *)wat;
+- (void)clearConsoleItems;
+- (void)setLogMode:(NSUInteger)logMode;
+- (NSUInteger)logMode;
+@end
+
 @implementation CCPShellHandler
 
-+ (void)runShellCommand:(NSString *)command withArgs:(NSArray *)args directory:(NSString *)directory completion:(void(^)(NSTask *t))completion {
++ (void)runShellCommand:(NSString *)command withArgs:(NSArray *)args directory:(NSString *)directory completion:(void(^)(NSString *stdOut, NSString *stdErr))completion {
     __block NSMutableData *taskOutput = [NSMutableData new];
     __block NSMutableData *taskError  = [NSMutableData new];
 
@@ -38,22 +47,32 @@
     task.standardOutput = [NSPipe pipe];
     task.standardError  = [NSPipe pipe];
 
+    id window = [[NSApplication sharedApplication] keyWindow];
+    NSView *contentView = [window valueForKey:@"contentView"];
+    __block NSView *console = [self consoleViewInMainView:contentView];
+    [console clearConsoleItems];
+    console.logMode = 1;
+
     [[task.standardOutput fileHandleForReading] setReadabilityHandler:^(NSFileHandle *file) {
-        [taskOutput appendData:[file availableData]];
+        NSData *data = [file availableData];
+        [taskOutput appendData:data];
+        [self writeData:data toConsole:console];
     }];
 
     [[task.standardError fileHandleForReading] setReadabilityHandler:^(NSFileHandle *file) {
-        [taskError appendData:[file availableData]];
+        NSData *data = [file availableData];
+        [taskError appendData:data];
+        [self writeData:data toConsole:console];
     }];
 
     [task setTerminationHandler:^(NSTask *t) {
         [t.standardOutput fileHandleForReading].readabilityHandler = nil;
         [t.standardError fileHandleForReading].readabilityHandler  = nil;
         NSString *output = [[NSString alloc] initWithData:taskOutput encoding:NSUTF8StringEncoding];
-        NSString *error = [[NSString alloc] initWithData:taskError encoding:NSUTF8StringEncoding];
+        NSString *error  = [[NSString alloc] initWithData:taskError encoding:NSUTF8StringEncoding];
         NSLog(@"Shell command output: %@", output);
         NSLog(@"Shell command error: %@", error);
-        if (completion) completion(t);
+        if (completion) completion(output, error);
     }];
 
     @try {
@@ -62,6 +81,33 @@
     @catch (NSException *exception) {
         NSLog(@"Failed to launch: %@", exception);
     }
+}
+
++ (void)writeData:(NSData *)data toConsole:(NSView *)console {
+    if ([data length] > 0) {
+        @try {
+            [console insertText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+            [console insertNewline:@""];
+        }
+        @catch (NSException *exception) {
+            NSLog(@"Exception occurred while piping to console: %@", [exception description]);
+        }
+    }
+}
+
++ (NSView *)consoleViewInMainView:(NSView *)mainView
+{
+    for (NSView *childView in mainView.subviews) {
+        if ([childView isKindOfClass:NSClassFromString(@"IDEConsoleTextView")]) {
+            return childView;
+        } else {
+            NSView *view = [self consoleViewInMainView:childView];
+            if ([view isKindOfClass:NSClassFromString(@"IDEConsoleTextView")]) {
+                return view;
+            }
+        }
+    }
+    return nil;
 }
 
 @end
