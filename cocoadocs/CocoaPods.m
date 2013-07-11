@@ -23,6 +23,7 @@
 
 #import "CocoaPods.h"
 #import "CCPShellHandler.h"
+#import "CCPWorkspaceManager.h"
 
 static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
 static NSString *RELATIVE_DOCSET_PATH  = @"/Library/Developer/Shared/Documentation/DocSets/";
@@ -58,24 +59,11 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     return self;
 }
 
-- (void)installOrUpdateDocSetsForPods {
-    for (NSString *podName in [self installedPodNamesInWorkspace]) {
-        NSURL *docsetURL = [NSURL URLWithString:[NSString stringWithFormat:DOCSET_ARCHIVE_FORMAT, podName]];
-        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:docsetURL] queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *xarData, NSError *connectionError) {
-            if (xarData) {
-                NSString *tmpFilePath = [NSString pathWithComponents:@[NSTemporaryDirectory(), [NSString stringWithFormat:@"%@.xar",podName]]];
-                [xarData writeToFile:tmpFilePath atomically:YES];
-                [self extractAndInstallDocsAtPath:tmpFilePath];
-            }
-        }];
-    }
-}
-
 #pragma mark - NSMenuValidation Protocol Methods
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
     if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.editPodfileItem]) {
-        return [self doesPodfileExist];
+        return [CCPWorkspaceManager currentWorkspaceHasPodfile];
     }
 
     return YES;
@@ -106,17 +94,22 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     }
 }
 
+#pragma mark - Menu Actions
+
 - (void)toggleInstallDocsForPods {
     [self setShouldInstallDocsForPods:![self shouldInstallDocsForPods]];
 }
 
-- (void)extractAndInstallDocsAtPath:(NSString *)path {
-    NSArray *arguments = @[@"-xf", path, @"-C", [CocoaPods docsetInstallPath]];
-    [CCPShellHandler runShellCommand:XAR_EXECUTABLE withArgs:arguments directory:NSTemporaryDirectory() completion:nil];
+- (void)openPodfileForEditing {
+    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
+                                                     openFile:[CCPWorkspaceManager currentWorkspacePodfilePath]];
 }
 
 - (void)integratePods {
-    [CCPShellHandler runShellCommand:@"/usr/bin/pod" withArgs:@[@"install"] directory:[self keyWorkspaceDirectoryPath] completion:^(NSTask *t) {
+    [CCPShellHandler runShellCommand:@"/usr/bin/pod"
+                            withArgs:@[@"install"]
+                           directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
+                          completion:^(NSTask *t) {
         if ([self shouldInstallDocsForPods]) {
             [self installOrUpdateDocSetsForPods];
         }
@@ -124,52 +117,31 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 }
 
 - (void)installCocoaPods {
-    [CCPShellHandler runShellCommand:@"/usr/bin/gem" withArgs:@[@"install", @"cocoapods"] directory:[self keyWorkspaceDirectoryPath] completion:nil];
+    [CCPShellHandler runShellCommand:@"/usr/bin/gem"
+                            withArgs:@[@"install", @"cocoapods"]
+                           directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
+                          completion:nil];
 }
 
-- (NSString *)podfilePath {
-    return [[self keyWorkspaceDirectoryPath] stringByAppendingPathComponent:@"Podfile"];
-}
-
-- (BOOL)doesPodfileExist {
-    return [[NSFileManager defaultManager] fileExistsAtPath:[self podfilePath]];
-}
-
-- (void)openPodfileForEditing {
-    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
-                                                     openFile:[self podfilePath]];
-}
-
-- (NSArray *)installedPodNamesInWorkspace {
-    NSMutableArray *names = [NSMutableArray new];
-    id workspace = [self workspaceForKeyWindow];
-
-    id contextManager = [workspace valueForKey:@"_runContextManager"];
-    for (id scheme in [contextManager valueForKey:@"runContexts"]) {
-        NSString *schemeName = [scheme valueForKey:@"name"];
-        if ([schemeName hasPrefix:@"Pods-"]) {
-            [names addObject:[schemeName stringByReplacingOccurrencesOfString:@"Pods-" withString:@""]];
-        }
+- (void)installOrUpdateDocSetsForPods {
+    for (NSString *podName in [CCPWorkspaceManager installedPodNamesInCurrentWorkspace]) {
+        NSURL *docsetURL = [NSURL URLWithString:[NSString stringWithFormat:DOCSET_ARCHIVE_FORMAT, podName]];
+        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:docsetURL] queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *xarData, NSError *connectionError) {
+            if (xarData) {
+                NSString *tmpFilePath = [NSString pathWithComponents:@[NSTemporaryDirectory(), [NSString stringWithFormat:@"%@.xar",podName]]];
+                [xarData writeToFile:tmpFilePath atomically:YES];
+                [self extractAndInstallDocsAtPath:tmpFilePath];
+            }
+        }];
     }
-    return names;
 }
 
-- (NSString *)keyWorkspaceDirectoryPath {
-    id workspace = [self workspaceForKeyWindow];
-    NSString *workspacePath = [[workspace valueForKey:@"representingFilePath"] valueForKey:@"_pathString"];
-    return [workspacePath stringByDeletingLastPathComponent];
-}
-
-- (id)workspaceForKeyWindow {
-    NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") valueForKey:@"workspaceWindowControllers"];
-
-    for (id controller in workspaceWindowControllers) {
-        if ([[controller valueForKey:@"window"] isKeyWindow]) {
-            return [controller valueForKey:@"_workspace"];
-            
-        }
-    }
-    return nil;
+- (void)extractAndInstallDocsAtPath:(NSString *)path {
+    NSArray *arguments = @[@"-xf", path, @"-C", [CocoaPods docsetInstallPath]];
+    [CCPShellHandler runShellCommand:XAR_EXECUTABLE
+                            withArgs:arguments
+                           directory:NSTemporaryDirectory()
+                          completion:nil];
 }
 
 #pragma mark - Preferences
