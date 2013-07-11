@@ -1,5 +1,5 @@
 //
-//  Cocoadocs.h
+//  CCPDocumentationManager.m
 //
 //  Copyright (c) 2013 Delisa Mason. http://delisa.me
 //
@@ -21,9 +21,14 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#import <AppKit/AppKit.h>
+#import "CCPDocumentationManager.h"
 
-@interface CocoaPods : NSObject
+static NSString *RELATIVE_DOCSET_PATH  = @"/Library/Developer/Shared/Documentation/DocSets/";
 
-- (void)installOrUpdateDocSetsForPods;
+@implementation CCPDocumentationManager
+
+
++ (NSString *)docsetInstallPath {
+    return [NSString pathWithComponents:@[NSHomeDirectory(), RELATIVE_DOCSET_PATH]];
+}
 @end

@@ -1,5 +1,5 @@
 //
-//  Cocoadocs.h
+//  CCPDocumentationManager.h
 //
 //  Copyright (c) 2013 Delisa Mason. http://delisa.me
 //
@@ -21,9 +21,10 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#import <AppKit/AppKit.h>
+#import <Foundation/Foundation.h>
 
-@interface CocoaPods : NSObject
+@interface CCPDocumentationManager : NSObject
 
-- (void)installOrUpdateDocSetsForPods;
++ (NSString *)docsetInstallPath;
+
 @end
