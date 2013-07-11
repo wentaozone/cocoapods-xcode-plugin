@@ -36,6 +36,8 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 @property (nonatomic, strong) NSMenuItem *editPodfileItem;
 @property (nonatomic, strong) NSMenuItem *installDocsItem;
 @property (nonatomic, strong) NSMenuItem *createPodfileItem;
+
+@property (nonatomic, strong) NSBundle *bundle;
 @end
 
 
@@ -45,12 +47,13 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     static id sharedPlugin = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedPlugin = [[self alloc] init];
+        sharedPlugin = [[self alloc] initWithBundle:plugin];
     });
 }
 
-- (id)init {
+- (id)initWithBundle:(NSBundle *)plugin {
     if (self = [super init]) {
+        _bundle = plugin;
         [self addMenuItems];
     }
     return self;
@@ -118,9 +121,10 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 }
 
 - (void)createPodfile {
-    [CCPShellHandler runShellCommand:@"/usr/bin/touch" withArgs:@[@"Podfile"] directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath] completion:^(NSTask *t) {
-        [self openPodfileForEditing];
-    }];
+    NSError *error = nil;
+    [[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:[CCPWorkspaceManager currentWorkspacePodfilePath] error:&error];
+    if (!error) [self openPodfileForEditing];
+    else [[NSAlert alertWithError:error] runModal];
 }
 
 - (void)openPodfileForEditing {
