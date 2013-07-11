@@ -118,21 +118,15 @@ describe(@"CocoaPods", ^{
                     });
 
                     context(@"a Podfile does not exist in the workspace directory", ^{
-                        beforeEach(^{
-                            [cocoaPods stub:@selector(doesPodfileExist) andReturn:theValue(NO)];
-                        });
-
                         it(@"is disabled", ^{
+                            [cocoaPods stub:@selector(doesPodfileExist) andReturn:theValue(NO)];
                             [[theValue([cocoaPods validateMenuItem:integratePodsMenuItem]) should] beNo];
                         });
                     });
 
                     context(@"a Podfile does exist in the workspace directory", ^{
-                        beforeEach(^{
-                            [cocoaPods stub:@selector(doesPodfileExist) andReturn:theValue(YES)];
-                        });
-
                         it(@"is enabled", ^{
+                            [cocoaPods stub:@selector(doesPodfileExist) andReturn:theValue(YES)];
                             [[theValue([cocoaPods validateMenuItem:integratePodsMenuItem]) should] beYes];
                         });
                     });

@@ -22,6 +22,7 @@
 //  IN THE SOFTWARE.
 
 #import "CocoaPods.h"
+#import "CCPShellHandler.h"
 
 static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
 static NSString *RELATIVE_DOCSET_PATH  = @"/Library/Developer/Shared/Documentation/DocSets/";
@@ -64,7 +65,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
             if (xarData) {
                 NSString *tmpFilePath = [NSString pathWithComponents:@[NSTemporaryDirectory(), [NSString stringWithFormat:@"%@.xar",podName]]];
                 [xarData writeToFile:tmpFilePath atomically:YES];
-                [self extractPath:tmpFilePath];
+                [self extractAndInstallDocsAtPath:tmpFilePath];
             }
         }];
     }
@@ -109,13 +110,13 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     [self setShouldInstallDocsForPods:![self shouldInstallDocsForPods]];
 }
 
-- (void)extractPath:(NSString *)path {
+- (void)extractAndInstallDocsAtPath:(NSString *)path {
     NSArray *arguments = @[@"-xf", path, @"-C", [CocoaPods docsetInstallPath]];
-    [self runShellCommand:XAR_EXECUTABLE withArgs:arguments directory:NSTemporaryDirectory() completion:nil];
+    [CCPShellHandler runShellCommand:XAR_EXECUTABLE withArgs:arguments directory:NSTemporaryDirectory() completion:nil];
 }
 
 - (void)integratePods {
-    [self runShellCommand:@"/usr/bin/pod" withArgs:@[@"install"] directory:[self keyWorkspaceDirectoryPath] completion:^(NSTask *t) {
+    [CCPShellHandler runShellCommand:@"/usr/bin/pod" withArgs:@[@"install"] directory:[self keyWorkspaceDirectoryPath] completion:^(NSTask *t) {
         if ([self shouldInstallDocsForPods]) {
             [self installOrUpdateDocSetsForPods];
         }
@@ -123,7 +124,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 }
 
 - (void)installCocoaPods {
-    [self runShellCommand:@"/usr/bin/gem" withArgs:@[@"install", @"cocoapods"] directory:[self keyWorkspaceDirectoryPath] completion:nil];
+    [CCPShellHandler runShellCommand:@"/usr/bin/gem" withArgs:@[@"install", @"cocoapods"] directory:[self keyWorkspaceDirectoryPath] completion:nil];
 }
 
 - (NSString *)podfilePath {
@@ -137,45 +138,6 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 - (void)openPodfileForEditing {
     [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
                                                      openFile:[self podfilePath]];
-}
-
-- (void)runShellCommand:(NSString *)command withArgs:(NSArray *)args directory:(NSString *)directory completion:(void(^)(NSTask *t))completion{
-    __block NSMutableData *taskOutput = [NSMutableData new];
-    __block NSMutableData *taskError  = [NSMutableData new];
-
-    NSTask *task = [NSTask new];
-
-    task.currentDirectoryPath = directory;
-    task.launchPath = command;
-    task.arguments  = args;
-
-    task.standardOutput = [NSPipe pipe];
-    task.standardError  = [NSPipe pipe];
-
-    [[task.standardOutput fileHandleForReading] setReadabilityHandler:^(NSFileHandle *file) {
-        [taskOutput appendData:[file availableData]];
-    }];
-
-    [[task.standardError fileHandleForReading] setReadabilityHandler:^(NSFileHandle *file) {
-        [taskError appendData:[file availableData]];
-    }];
-
-    [task setTerminationHandler:^(NSTask *t) {
-        [t.standardOutput fileHandleForReading].readabilityHandler = nil;
-        [t.standardError fileHandleForReading].readabilityHandler  = nil;
-        NSString *output = [[NSString alloc] initWithData:taskOutput encoding:NSUTF8StringEncoding];
-        NSString *error = [[NSString alloc] initWithData:taskError encoding:NSUTF8StringEncoding];
-        NSLog(@"Shell command output: %@", output);
-        NSLog(@"Shell command error: %@", error);
-        if (completion) completion(t);
-    }];
-
-    @try {
-        [task launch];
-    }
-    @catch (NSException *exception) {
-        NSLog(@"Failed to launch: %@", exception);
-    }
 }
 
 - (NSArray *)installedPodNamesInWorkspace {

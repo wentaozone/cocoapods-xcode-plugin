@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		457DEFB896CD4B97948E9401 /* libPods-CocoaPodsTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BE27DB1AFC6F4C2498848499 /* libPods-CocoaPodsTests.a */; };
+		8A275F8D178EFD2800FAB421 /* CCPShellHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A275F8C178EFD2800FAB421 /* CCPShellHandler.m */; };
+		8A275F8E178EFD2800FAB421 /* CCPShellHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A275F8C178EFD2800FAB421 /* CCPShellHandler.m */; };
 		8A80859E178B93C4006E56E3 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A80859D178B93C4006E56E3 /* AppKit.framework */; };
 		8A8085A0178B93C4006E56E3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A80859F178B93C4006E56E3 /* Foundation.framework */; };
 		8A8085A6178B93C4006E56E3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8A8085A4178B93C4006E56E3 /* InfoPlist.strings */; };
@@ -19,6 +21,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8A275F8B178EFD2800FAB421 /* CCPShellHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPShellHandler.h; sourceTree = "<group>"; };
+		8A275F8C178EFD2800FAB421 /* CCPShellHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPShellHandler.m; sourceTree = "<group>"; };
 		8A80859A178B93C4006E56E3 /* CocoaPods.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CocoaPods.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A80859D178B93C4006E56E3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		8A80859F178B93C4006E56E3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -60,6 +64,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8A275F8A178EFD2800FAB421 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				8A275F8B178EFD2800FAB421 /* CCPShellHandler.h */,
+				8A275F8C178EFD2800FAB421 /* CCPShellHandler.m */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
 		8A808591178B93C4006E56E3 = {
 			isa = PBXGroup;
 			children = (
@@ -95,6 +108,7 @@
 		8A8085A1178B93C4006E56E3 /* CocoaPods */ = {
 			isa = PBXGroup;
 			children = (
+				8A275F8A178EFD2800FAB421 /* Helpers */,
 				8A8085A7178B93C4006E56E3 /* CocoaPods.h */,
 				8A8085A8178B93C4006E56E3 /* CocoaPods.m */,
 				8A8085A2178B93C4006E56E3 /* Supporting Files */,
@@ -259,6 +273,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A8085A9178B93C4006E56E3 /* CocoaPods.m in Sources */,
+				8A275F8D178EFD2800FAB421 /* CCPShellHandler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,6 +283,7 @@
 			files = (
 				DA5DD7DA178E02900032D9C3 /* CocoaPods.m in Sources */,
 				DAB0A1F6178DF64E004A754B /* CocoaPodsSpec.m in Sources */,
+				8A275F8E178EFD2800FAB421 /* CCPShellHandler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
