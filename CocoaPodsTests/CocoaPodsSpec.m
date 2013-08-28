@@ -23,6 +23,7 @@
 
 #import <Kiwi/Kiwi.h>
 #import "CocoaPods.h"
+#import "CCPDocumentationManager.h"
 
 
 static NSString * const kCocoaPodsPluginPath =
@@ -57,7 +58,7 @@ describe(@"CocoaPods", ^{
                  andReturn:@"Penny Lane"
              withArguments:[KWAny any], @"/Library/Developer/Shared/Documentation/DocSets/"];
 
-            [[[CocoaPods docsetInstallPath] should]
+            [[[CCPDocumentationManager docsetInstallPath] should]
                 equal:@"Penny Lane"];
         });
     });
