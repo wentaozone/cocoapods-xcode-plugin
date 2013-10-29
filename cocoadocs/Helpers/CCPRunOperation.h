@@ -26,6 +26,6 @@
 
 - (id)initWithTask:(NSTask *)task;
 
-@property (nonatomic, strong) CCPXCodeConsole *xcodeConsole;
+@property (retain) CCPXCodeConsole *xcodeConsole;
 
 @end

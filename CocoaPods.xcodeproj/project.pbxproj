@@ -24,10 +24,8 @@
 		DAB0A1E6178DF5EE004A754B /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAB0A1E5178DF5EE004A754B /* SenTestingKit.framework */; };
 		DAB0A1EC178DF5EE004A754B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAB0A1EA178DF5EE004A754B /* InfoPlist.strings */; };
 		DAB0A1F6178DF64E004A754B /* CocoaPodsSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = DAB0A1F5178DF64E004A754B /* CocoaPodsSpec.m */; };
-		F272071718203C9800077BA0 /* CCPRunOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F272071618203C9800077BA0 /* CCPRunOperation.m */; };
-		F272071A18203D5300077BA0 /* CCPXCodeConsole.m in Sources */ = {isa = PBXBuildFile; fileRef = F272071918203D5300077BA0 /* CCPXCodeConsole.m */; };
-		F2D5D7F318203FAC004D95BF /* CCPRunOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F272071618203C9800077BA0 /* CCPRunOperation.m */; };
-		F2D5D7F418203FAC004D95BF /* CCPXCodeConsole.m in Sources */ = {isa = PBXBuildFile; fileRef = F272071918203D5300077BA0 /* CCPXCodeConsole.m */; };
+		F24543571820444400EA1746 /* CCPXCodeConsole.m in Sources */ = {isa = PBXBuildFile; fileRef = F2585920182041BB001C7319 /* CCPXCodeConsole.m */; };
+		F24543581820444900EA1746 /* CCPRunOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F258591E182041BB001C7319 /* CCPRunOperation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,10 +53,10 @@
 		DAB0A1EF178DF5EE004A754B /* CocoaPodsTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CocoaPodsTests-Prefix.pch"; sourceTree = "<group>"; };
 		DAB0A1F5178DF64E004A754B /* CocoaPodsSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CocoaPodsSpec.m; sourceTree = "<group>"; };
 		DAD58A90178E096700939F87 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		F272071518203C9800077BA0 /* CCPRunOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPRunOperation.h; sourceTree = "<group>"; };
-		F272071618203C9800077BA0 /* CCPRunOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPRunOperation.m; sourceTree = "<group>"; };
-		F272071818203D5300077BA0 /* CCPXCodeConsole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPXCodeConsole.h; sourceTree = "<group>"; };
-		F272071918203D5300077BA0 /* CCPXCodeConsole.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPXCodeConsole.m; sourceTree = "<group>"; };
+		F258591D182041BB001C7319 /* CCPRunOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPRunOperation.h; sourceTree = "<group>"; };
+		F258591E182041BB001C7319 /* CCPRunOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPRunOperation.m; sourceTree = "<group>"; };
+		F258591F182041BB001C7319 /* CCPXCodeConsole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPXCodeConsole.h; sourceTree = "<group>"; };
+		F2585920182041BB001C7319 /* CCPXCodeConsole.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPXCodeConsole.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,10 +90,10 @@
 				8AE98FD3178EFEA60053F2A4 /* CCPWorkspaceManager.m */,
 				8ADD4FE0178F02650014BEF8 /* CCPDocumentationManager.h */,
 				8ADD4FE1178F02650014BEF8 /* CCPDocumentationManager.m */,
-				F272071518203C9800077BA0 /* CCPRunOperation.h */,
-				F272071618203C9800077BA0 /* CCPRunOperation.m */,
-				F272071818203D5300077BA0 /* CCPXCodeConsole.h */,
-				F272071918203D5300077BA0 /* CCPXCodeConsole.m */,
+				F258591D182041BB001C7319 /* CCPRunOperation.h */,
+				F258591E182041BB001C7319 /* CCPRunOperation.m */,
+				F258591F182041BB001C7319 /* CCPXCodeConsole.h */,
+				F2585920182041BB001C7319 /* CCPXCodeConsole.m */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -302,12 +300,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F272071A18203D5300077BA0 /* CCPXCodeConsole.m in Sources */,
-				F272071718203C9800077BA0 /* CCPRunOperation.m in Sources */,
 				8A8085A9178B93C4006E56E3 /* CocoaPods.m in Sources */,
 				8A275F8D178EFD2800FAB421 /* CCPShellHandler.m in Sources */,
 				8AE98FD4178EFEA60053F2A4 /* CCPWorkspaceManager.m in Sources */,
 				8ADD4FE2178F02650014BEF8 /* CCPDocumentationManager.m in Sources */,
+				F24543571820444400EA1746 /* CCPXCodeConsole.m in Sources */,
+				F24543581820444900EA1746 /* CCPRunOperation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,9 +316,7 @@
 				DA5DD7DA178E02900032D9C3 /* CocoaPods.m in Sources */,
 				DAB0A1F6178DF64E004A754B /* CocoaPodsSpec.m in Sources */,
 				8A275F8E178EFD2800FAB421 /* CCPShellHandler.m in Sources */,
-				F2D5D7F418203FAC004D95BF /* CCPXCodeConsole.m in Sources */,
 				8AE98FD5178EFEA60053F2A4 /* CCPWorkspaceManager.m in Sources */,
-				F2D5D7F318203FAC004D95BF /* CCPRunOperation.m in Sources */,
 				8ADD4FE3178F02650014BEF8 /* CCPDocumentationManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

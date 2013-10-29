@@ -28,6 +28,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Debug">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DAB0A1E3178DF5EE004A754B"
+               BuildableName = "CocoaPodsTests.octest"
+               BlueprintName = "CocoaPodsTests"
+               ReferencedContainer = "container:CocoaPods.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

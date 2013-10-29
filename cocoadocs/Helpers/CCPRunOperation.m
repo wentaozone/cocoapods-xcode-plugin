@@ -202,28 +202,25 @@
 
 - (void)appendLine:(NSString *)line
 {
-	NSColor *color;
+	NSColor *color = NSColor.whiteColor;
     
-	if ([line hasPrefix:@"[ERROR]"])
+	if ([line hasPrefix:@"ERROR"])
 	{
 		color = NSColor.redColor;
 	}
-	else if ([line hasPrefix:@"[WARNING]"])
+	else if ([line hasPrefix:@"WARNING"])
 	{
 		color = NSColor.orangeColor;
 	}
-	else if ([line hasPrefix:@"[DEBUG]"])
+	else if ([line hasPrefix:@"DEBUG"])
 	{
 		color = NSColor.grayColor;
 	}
-	else if ([line hasPrefix:@"[INFO] !"])
+	else if ([line hasPrefix:@"INFO"])
 	{
 		color = [NSColor colorWithDeviceRed:0.0 green:0.5 blue:0.0 alpha:1.0];
 	}
-	else
-	{
-		color = NSColor.blackColor;
-	}
+    
 	[self.xcodeConsole appendText:[line stringByAppendingString:@"\n"] color:color];
 }
 

@@ -22,8 +22,6 @@
 
 @interface CCPXCodeConsole : NSObject
 
-- (id)initWithConsole:(NSTextView *)console;
-
 - (void)appendText:(NSString *)text;
 - (void)appendText:(NSString *)text color:(NSColor *)color;
 
