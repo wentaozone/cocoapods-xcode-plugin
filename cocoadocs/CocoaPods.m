@@ -33,7 +33,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 @interface CocoaPods ()
 @property (nonatomic, strong) NSMenuItem *installPodsItem;
-@property (nonatomic, strong) NSMenuItem *editPodfileItem;
+@property (nonatomic, strong) NSMenuItem *outdatedPodsItem;
 @property (nonatomic, strong) NSMenuItem *installDocsItem;
 @property (nonatomic, strong) NSMenuItem *createPodfileItem;
 
@@ -62,11 +62,8 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 #pragma mark - Menu
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
-    if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.editPodfileItem])
+    if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem])
         return [CCPWorkspaceManager currentWorkspaceHasPodfile];
-
-    else if ([menuItem isEqual:self.createPodfileItem])
-        return [CCPWorkspaceManager currentWorkspaceDirectoryPath] && ![CCPWorkspaceManager currentWorkspaceHasPodfile];
 
     return YES;
 }
@@ -82,15 +79,15 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
                                                    keyEquivalent:@""];
         self.installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
         
-        self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install Pods in Podfile"
+        self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods"
                                                           action:@selector(integratePods)
                                                    keyEquivalent:@""];
         
-        self.editPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Edit Podfile"
-                                                          action:@selector(openPodfileForEditing)
+        self.outdatedPodsItem = [[NSMenuItem alloc] initWithTitle:@"Check for Outdated Pods"
+                                                          action:@selector(outdatedPods)
                                                    keyEquivalent:@""];
 
-        self.createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create Podfile"
+        self.createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podfile"
                                                             action:@selector(createPodfile)
                                                      keyEquivalent:@""];
         
@@ -100,15 +97,15 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
         
         [self.installDocsItem setTarget:self];
         [self.installPodsItem setTarget:self];
+        [self.outdatedPodsItem setTarget:self];
         [updateCPodsItem setTarget:self];
-        [self.editPodfileItem setTarget:self];
         [self.createPodfileItem setTarget:self];
-
-        [[cocoaPodsMenu submenu] addItem:self.createPodfileItem];
+        
         [[cocoaPodsMenu submenu] addItem:self.installPodsItem];
+        [[cocoaPodsMenu submenu] addItem:self.outdatedPodsItem];
         [[cocoaPodsMenu submenu] addItem:self.installDocsItem];
         [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
-        [[cocoaPodsMenu submenu] addItem:self.editPodfileItem];
+        [[cocoaPodsMenu submenu] addItem:self.createPodfileItem];
         [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
         [[topMenuItem submenu] insertItem:cocoaPodsMenu atIndex:[topMenuItem.submenu indexOfItemWithTitle:@"Build For"]];
     }
@@ -121,16 +118,23 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 }
 
 - (void)createPodfile {
-    NSString *podFilePath = [CCPWorkspaceManager currentWorkspacePodfilePath];
-    if ([[NSFileManager defaultManager] fileExistsAtPath:podFilePath]) {
-        [[NSAlert alertWithMessageText:NSLocalizedString(@"warning.podfile.exists", nil) defaultButton:@"Okay" alternateButton:nil otherButton:nil informativeTextWithFormat:NSLocalizedString(@"warning.podfile.exists.info", nil)] runModal];
-        return;
-    }
+    if (! [CCPWorkspaceManager currentWorkspaceHasPodfile])
+    {
+        NSString *podFilePath = [CCPWorkspaceManager currentWorkspacePodfilePath];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:podFilePath]) {
+            [[NSAlert alertWithMessageText:NSLocalizedString(@"warning.podfile.exists", nil) defaultButton:@"Okay" alternateButton:nil otherButton:nil informativeTextWithFormat:NSLocalizedString(@"warning.podfile.exists.info", nil)] runModal];
+            return;
+        }
 
-    NSError *error = nil;
-    [[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:podFilePath error:&error];
-    if (!error) [self openPodfileForEditing];
-    else [[NSAlert alertWithError:error] runModal];
+        NSError *error = nil;
+        [[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:podFilePath error:&error];
+        if (error)
+        {
+            [[NSAlert alertWithError:error] runModal];
+        }
+    }
+    
+    [self openPodfileForEditing];
 }
 
 - (void)openPodfileForEditing {
@@ -139,18 +143,29 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
                                                          openFile:[CCPWorkspaceManager currentWorkspacePodfilePath]];
     }
 }
-
+    
 - (void)integratePods {
     [CCPShellHandler runShellCommand:@"/usr/bin/pod"
                             withArgs:@[@"install"]
                            directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
                           completion:^(NSTask *t) {
-        if ([self shouldInstallDocsForPods]) {
-            [self installOrUpdateDocSetsForPods];
-        }
-    }];
+                              if ([self shouldInstallDocsForPods]) {
+                                  [self installOrUpdateDocSetsForPods];
+                              }
+                          }];
 }
-
+    
+- (void)outdatedPods {
+    [CCPShellHandler runShellCommand:@"/usr/bin/pod"
+                            withArgs:@[@"outdated"]
+                           directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
+                          completion:^(NSTask *t) {
+                              if ([self shouldInstallDocsForPods]) {
+                                  [self installOrUpdateDocSetsForPods];
+                              }
+                          }];
+}
+    
 - (void)installCocoaPods {
     [CCPShellHandler runShellCommand:@"/usr/bin/gem"
                             withArgs:@[@"install", @"cocoapods"]
