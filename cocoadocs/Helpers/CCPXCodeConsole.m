@@ -41,7 +41,7 @@
 
 - (void)appendText:(NSString *)text
 {
-	[self appendText:text color:NSColor.whiteColor];
+	[self appendText:text color:nil];
 }
 
 - (void)appendText:(NSString *)text color:(NSColor *)color
@@ -50,6 +50,11 @@
 	{
 		return;
 	}
+    
+    if (! color)
+    {
+        color = self.console.textColor;
+    }
     
 	NSMutableDictionary *attributes = [@{ NSForegroundColorAttributeName: color } mutableCopy];
 	NSFont *font = [NSFont fontWithName:@"Menlo Regular" size:11];

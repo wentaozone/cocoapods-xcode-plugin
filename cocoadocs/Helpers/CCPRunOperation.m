@@ -202,7 +202,7 @@
 
 - (void)appendLine:(NSString *)line
 {
-	NSColor *color = NSColor.whiteColor;
+	NSColor *color;
     
 	if ([line hasPrefix:@"ERROR"])
 	{
