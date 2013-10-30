@@ -23,9 +23,35 @@
 
 #import "CCPWorkspaceManager.h"
 
+#import "CCPProject.h"
+
 static NSString *PODFILE = @"Podfile";
+static CCPProject *defaultWorkspace;
 
 @implementation CCPWorkspaceManager
+
++ (CCPProject *)defaultWorkspace
+{
+	if (defaultWorkspace)
+	{
+		return defaultWorkspace;
+	}
+    
+	id workspace = [self workspaceForKeyWindow];
+    
+	id contextManager = [workspace valueForKey:@"_runContextManager"];
+	for (id scheme in[contextManager valueForKey:@"runContexts"])
+	{
+		NSString *schemeName = [scheme valueForKey:@"name"];
+		if (![schemeName hasPrefix:@"Pods-"])
+		{
+			defaultWorkspace = [[CCPProject alloc] initWithSchemeName:schemeName];
+			return defaultWorkspace;
+		}
+	}
+    
+	return nil;
+}
 
 + (NSArray *)installedPodNamesInCurrentWorkspace
 {
@@ -44,27 +70,11 @@ static NSString *PODFILE = @"Podfile";
 	return names;
 }
 
-+ (NSString *)currentWorkspacePodfilePath
-{
-	return [[self currentWorkspaceDirectoryPath] stringByAppendingPathComponent:@"Podfile"];
-}
-
 + (NSString *)currentWorkspaceDirectoryPath
 {
 	id workspace = [self workspaceForKeyWindow];
 	NSString *workspacePath = [[workspace valueForKey:@"representingFilePath"] valueForKey:@"_pathString"];
 	return [workspacePath stringByDeletingLastPathComponent];
-}
-
-+ (BOOL)currentWorkspaceHasPodfile
-{
-	return [self fileNameExistsInCurrentWorkspace:PODFILE];
-}
-
-+ (BOOL)fileNameExistsInCurrentWorkspace:(NSString *)fileName
-{
-	NSString *filePath = [[self currentWorkspaceDirectoryPath] stringByAppendingPathComponent:fileName];
-	return [[NSFileManager defaultManager] fileExistsAtPath:filePath];
 }
 
 #pragma mark - Private

@@ -25,6 +25,7 @@
 #import "CCPShellHandler.h"
 #import "CCPWorkspaceManager.h"
 #import "CCPDocumentationManager.h"
+#import "CCPProject.h"
 
 static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
 static NSString *DOCSET_ARCHIVE_FORMAT = @"http://cocoadocs.org/docsets/%@/docset.xar";
@@ -36,7 +37,9 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 @property (nonatomic, strong) NSMenuItem *installPodsItem;
 @property (nonatomic, strong) NSMenuItem *outdatedPodsItem;
 @property (nonatomic, strong) NSMenuItem *installDocsItem;
+
 @property (nonatomic, strong) NSMenuItem *createPodfileItem;
+@property (nonatomic, strong) NSMenuItem *createPodspecItem;
 
 @property (nonatomic, strong) NSBundle *bundle;
 
@@ -70,7 +73,8 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 {
 	if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem])
 	{
-		return [CCPWorkspaceManager currentWorkspaceHasPodfile];
+        CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
+        return [project hasPodfile];
 	}
     
 	return YES;
@@ -105,18 +109,25 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 		                                                         action:@selector(installCocoaPods)
 		                                                  keyEquivalent:@""];
         
+		self.createPodspecItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podspec"
+		                                                    action:@selector(createPodspecFile)
+		                                             keyEquivalent:@""];
+        
 		[self.installDocsItem setTarget:self];
 		[self.installPodsItem setTarget:self];
 		[self.outdatedPodsItem setTarget:self];
 		[updateCPodsItem setTarget:self];
 		[self.createPodfileItem setTarget:self];
+		[self.createPodspecItem setTarget:self];
         
 		[[cocoaPodsMenu submenu] addItem:self.installPodsItem];
 		[[cocoaPodsMenu submenu] addItem:self.outdatedPodsItem];
-		[[cocoaPodsMenu submenu] addItem:self.installDocsItem];
-		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
 		[[cocoaPodsMenu submenu] addItem:self.createPodfileItem];
+		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
+		[[cocoaPodsMenu submenu] addItem:self.installDocsItem];
 		[[cocoaPodsMenu submenu] addItem:updateCPodsItem];
+		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
+		[[cocoaPodsMenu submenu] addItem:self.createPodspecItem];
 		[[topMenuItem submenu] insertItem:cocoaPodsMenu atIndex:[topMenuItem.submenu indexOfItemWithTitle:@"Build For"]];
 	}
 }
@@ -130,15 +141,11 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (void)createPodfile
 {
-	if (![CCPWorkspaceManager currentWorkspaceHasPodfile])
+    CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
+    NSString *podFilePath = project.podfilePath;
+    
+	if (! [project hasPodfile])
 	{
-		NSString *podFilePath = [CCPWorkspaceManager currentWorkspacePodfilePath];
-		if ([[NSFileManager defaultManager] fileExistsAtPath:podFilePath])
-		{
-			[[NSAlert alertWithMessageText:NSLocalizedString(@"warning.podfile.exists", nil) defaultButton:@"Okay" alternateButton:nil otherButton:nil informativeTextWithFormat:NSLocalizedString(@"warning.podfile.exists.info", nil)] runModal];
-			return;
-		}
-        
 		NSError *error = nil;
 		[[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:podFilePath error:&error];
 		if (error)
@@ -147,16 +154,25 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 		}
 	}
     
-	[self openPodfileForEditing];
+    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
+                                                     openFile:podFilePath];
 }
 
-- (void)openPodfileForEditing
+- (void)createPodspecFile
 {
-	if ([CCPWorkspaceManager currentWorkspaceHasPodfile])
-	{
-		[[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
-		                                                 openFile:[CCPWorkspaceManager currentWorkspacePodfilePath]];
-	}
+    CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
+    NSString *podspecPath = project.podspecPath;
+    
+	if (! [project hasPodspecFile])
+    {
+        NSString *podspecTemplate = [NSString stringWithContentsOfFile:[self.bundle pathForResource:@"DefaultPodspec" ofType:@""]
+                                                              encoding:NSUTF8StringEncoding error:nil];
+        
+        [project createPodspecFromTemplate:podspecTemplate];
+    }
+    
+    [[[NSApplication sharedApplication] delegate] application:[NSApplication sharedApplication]
+                                                     openFile:podspecPath];
 }
 
 - (void)integratePods
@@ -177,12 +193,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 	[CCPShellHandler runShellCommand:@"/usr/bin/pod"
 	                        withArgs:@[@"outdated"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
-	                      completion: ^(NSTask *t) {
-                              if ([self shouldInstallDocsForPods])
-                              {
-                                  [self installOrUpdateDocSetsForPods];
-                              }
-                          }];
+	                      completion:nil];
 }
 
 - (void)installCocoaPods

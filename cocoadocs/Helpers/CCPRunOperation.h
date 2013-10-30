@@ -20,12 +20,8 @@
 
 #import <AppKit/AppKit.h>
 
-#import "CCPXCodeConsole.h"
-
 @interface CCPRunOperation : NSOperation
 
 - (id)initWithTask:(NSTask *)task;
-
-@property (retain) CCPXCodeConsole *xcodeConsole;
 
 @end

@@ -26,7 +26,6 @@
 #import <AppKit/AppKit.h>
 
 #import "CCPRunOperation.h"
-#import "CCPXCodeConsole.h"
 
 static NSOperationQueue *operationQueue;
 
@@ -47,9 +46,6 @@ static NSOperationQueue *operationQueue;
     
     
 	CCPRunOperation *operation = [[CCPRunOperation alloc] initWithTask:task];
-	operation.xcodeConsole = [CCPXCodeConsole new];
-    
-    
 	[operationQueue addOperation:operation];
 }
 

@@ -23,14 +23,14 @@
 
 #import <Foundation/Foundation.h>
 
+@class CCPProject;
+
 @interface CCPWorkspaceManager : NSObject
+
++ (CCPProject *)defaultWorkspace;
 
 + (NSArray *)installedPodNamesInCurrentWorkspace;
 
 + (NSString *)currentWorkspaceDirectoryPath;
-+ (NSString *)currentWorkspacePodfilePath;
-
-+ (BOOL)currentWorkspaceHasPodfile;
-+ (BOOL)fileNameExistsInCurrentWorkspace:(NSString *)fileName;
 
 @end

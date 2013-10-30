@@ -20,6 +20,8 @@
 
 #import "CCPXCodeConsole.h"
 
+static CCPXCodeConsole *sharedInstance;
+
 @interface CCPXCodeConsole ()
 
 @property (retain) NSTextView *console;
@@ -31,12 +33,18 @@
 
 - (id)init
 {
-    if (self = [super init])
-    {
-        self.console = [self findConsoleAndActivate];
-    }
+	[NSException raise:@"Singleton Implementation" format:@"Should call [CCPXCodeConsole sharedInstance] instead!"];
+	return nil;
+}
+
+- (id)initSuper
+{
+	if (self = [super init])
+	{
+		self.console = [self findConsoleAndActivate];
+	}
     
-    return self;
+	return self;
 }
 
 - (void)appendText:(NSString *)text
@@ -51,10 +59,10 @@
 		return;
 	}
     
-    if (! color)
-    {
-        color = self.console.textColor;
-    }
+	if (!color)
+	{
+		color = self.console.textColor;
+	}
     
 	NSMutableDictionary *attributes = [@{ NSForegroundColorAttributeName: color } mutableCopy];
 	NSFont *font = [NSFont fontWithName:@"Menlo Regular" size:11];
@@ -74,6 +82,28 @@
 	{
 		[self.console.textStorage appendAttributedString:as];
 	}
+}
+
+#pragma mark - Class Methods
+
++ (instancetype)sharedInstance
+{
+	if (!sharedInstance)
+	{
+		sharedInstance = [[CCPXCodeConsole alloc] initSuper];
+	}
+    
+	return sharedInstance;
+}
+
++ (void)log:(id)obj
+{
+	[[CCPXCodeConsole sharedInstance] appendText:[NSString stringWithFormat:@"%@\n", obj]];
+}
+
++ (void)error:(id)obj
+{
+	[[CCPXCodeConsole sharedInstance] appendText:[NSString stringWithFormat:@"%@\n", obj] color:NSColor.redColor];
 }
 
 #pragma mark - Console Detection
@@ -96,8 +126,8 @@
 		}
 	}
     
-    NSRange range; range.location = 0; range.length = console.textStorage.length;
-    [console.textStorage deleteCharactersInRange:range];
+	NSRange range; range.location = 0; range.length = console.textStorage.length;
+	[console.textStorage deleteCharactersInRange:range];
     
 	return console;
 }

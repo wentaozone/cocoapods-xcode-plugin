@@ -26,6 +26,9 @@
 	BOOL isFinished;
 }
 
+
+@property (retain) CCPXCodeConsole *xcodeConsole;
+
 @property (retain) NSTask *task;
 @property (retain) id taskStandardOutDataAvailableObserver;
 @property (retain) id taskStandardErrorDataAvailableObserver;
@@ -44,6 +47,7 @@
 	self = [super init];
 	if (self)
 	{
+		self.xcodeConsole = [CCPXCodeConsole sharedInstance];
 		self.task = task;
 	}
 	return self;

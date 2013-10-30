@@ -22,7 +22,12 @@
 
 @interface CCPXCodeConsole : NSObject
 
++ (instancetype)sharedInstance;
+
 - (void)appendText:(NSString *)text;
 - (void)appendText:(NSString *)text color:(NSColor *)color;
+
++ (void)log:(id)obj;
++ (void)error:(id)obj;
 
 @end
