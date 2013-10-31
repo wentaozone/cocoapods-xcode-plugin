@@ -24,6 +24,10 @@
 		DAB0A1E6178DF5EE004A754B /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAB0A1E5178DF5EE004A754B /* SenTestingKit.framework */; };
 		DAB0A1EC178DF5EE004A754B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAB0A1EA178DF5EE004A754B /* InfoPlist.strings */; };
 		DAB0A1F6178DF64E004A754B /* CocoaPodsSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = DAB0A1F5178DF64E004A754B /* CocoaPodsSpec.m */; };
+		F2031A5F18214F7C0052204B /* DefaultPodspec in Resources */ = {isa = PBXBuildFile; fileRef = F2031A5E18214F7C0052204B /* DefaultPodspec */; };
+		F24543571820444400EA1746 /* CCPXCodeConsole.m in Sources */ = {isa = PBXBuildFile; fileRef = F2585920182041BB001C7319 /* CCPXCodeConsole.m */; };
+		F24543581820444900EA1746 /* CCPRunOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F258591E182041BB001C7319 /* CCPRunOperation.m */; };
+		F2D876AE1821928300ED2C96 /* CCPProject.m in Sources */ = {isa = PBXBuildFile; fileRef = F2D876AD1821928300ED2C96 /* CCPProject.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +55,13 @@
 		DAB0A1EF178DF5EE004A754B /* CocoaPodsTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CocoaPodsTests-Prefix.pch"; sourceTree = "<group>"; };
 		DAB0A1F5178DF64E004A754B /* CocoaPodsSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CocoaPodsSpec.m; sourceTree = "<group>"; };
 		DAD58A90178E096700939F87 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		F2031A5E18214F7C0052204B /* DefaultPodspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DefaultPodspec; sourceTree = "<group>"; };
+		F258591D182041BB001C7319 /* CCPRunOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPRunOperation.h; sourceTree = "<group>"; };
+		F258591E182041BB001C7319 /* CCPRunOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPRunOperation.m; sourceTree = "<group>"; };
+		F258591F182041BB001C7319 /* CCPXCodeConsole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPXCodeConsole.h; sourceTree = "<group>"; };
+		F2585920182041BB001C7319 /* CCPXCodeConsole.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPXCodeConsole.m; sourceTree = "<group>"; };
+		F2D876AC1821928300ED2C96 /* CCPProject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCPProject.h; sourceTree = "<group>"; };
+		F2D876AD1821928300ED2C96 /* CCPProject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCPProject.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +95,12 @@
 				8AE98FD3178EFEA60053F2A4 /* CCPWorkspaceManager.m */,
 				8ADD4FE0178F02650014BEF8 /* CCPDocumentationManager.h */,
 				8ADD4FE1178F02650014BEF8 /* CCPDocumentationManager.m */,
+				F258591D182041BB001C7319 /* CCPRunOperation.h */,
+				F258591E182041BB001C7319 /* CCPRunOperation.m */,
+				F258591F182041BB001C7319 /* CCPXCodeConsole.h */,
+				F2585920182041BB001C7319 /* CCPXCodeConsole.m */,
+				F2D876AC1821928300ED2C96 /* CCPProject.h */,
+				F2D876AD1821928300ED2C96 /* CCPProject.m */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -139,6 +156,7 @@
 				8A8085A4178B93C4006E56E3 /* InfoPlist.strings */,
 				8A8085AA178B93C4006E56E3 /* CocoaPods-Prefix.pch */,
 				8A4623A3178F055600DAB579 /* DefaultPodfile */,
+				F2031A5E18214F7C0052204B /* DefaultPodspec */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -239,6 +257,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A8085A6178B93C4006E56E3 /* InfoPlist.strings in Resources */,
+				F2031A5F18214F7C0052204B /* DefaultPodspec in Resources */,
 				8A4623A4178F055600DAB579 /* DefaultPodfile in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -294,6 +313,9 @@
 				8A275F8D178EFD2800FAB421 /* CCPShellHandler.m in Sources */,
 				8AE98FD4178EFEA60053F2A4 /* CCPWorkspaceManager.m in Sources */,
 				8ADD4FE2178F02650014BEF8 /* CCPDocumentationManager.m in Sources */,
+				F24543571820444400EA1746 /* CCPXCodeConsole.m in Sources */,
+				F24543581820444900EA1746 /* CCPRunOperation.m in Sources */,
+				F2D876AE1821928300ED2C96 /* CCPProject.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +415,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(HOME)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/flaviocaetano/github/cocoapods-xcode-plugin",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/IDEKit-bpdfmjciiwtdnzcazayjdxqimcte/Build/Products/Debug",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "cocoadocs/CocoaPods-Prefix.pch";
 				INFOPLIST_FILE = "cocoadocs/CocoaPods-Info.plist";
@@ -409,6 +436,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEPLOYMENT_LOCATION = YES;
 				DSTROOT = "$(HOME)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/flaviocaetano/github/cocoapods-xcode-plugin",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/IDEKit-bpdfmjciiwtdnzcazayjdxqimcte/Build/Products/Debug",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "cocoadocs/CocoaPods-Prefix.pch";
 				INFOPLIST_FILE = "cocoadocs/CocoaPods-Info.plist";

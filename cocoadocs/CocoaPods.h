@@ -26,4 +26,5 @@
 @interface CocoaPods : NSObject
 
 - (void)installOrUpdateDocSetsForPods;
+
 @end
