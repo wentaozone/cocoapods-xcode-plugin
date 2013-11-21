@@ -26,27 +26,19 @@
 #import "CCPProject.h"
 
 static NSString *PODFILE = @"Podfile";
-static CCPProject *defaultWorkspace;
 
 @implementation CCPWorkspaceManager
 
 + (CCPProject *)defaultWorkspace
 {
-	if (defaultWorkspace)
-	{
-		return defaultWorkspace;
-	}
-    
 	id workspace = [self workspaceForKeyWindow];
     
 	id contextManager = [workspace valueForKey:@"_runContextManager"];
-	for (id scheme in[contextManager valueForKey:@"runContexts"])
-	{
+	for (id scheme in[contextManager valueForKey:@"runContexts"]) {
 		NSString *schemeName = [scheme valueForKey:@"name"];
-		if (![schemeName hasPrefix:@"Pods-"])
-		{
-			defaultWorkspace = [[CCPProject alloc] initWithSchemeName:schemeName];
-			return defaultWorkspace;
+		if (![schemeName hasPrefix:@"Pods-"]) {
+            NSString *path = [self directoryPathForWorkspace:workspace];
+			return [[CCPProject alloc] initWithName:schemeName path:path];
 		}
 	}
     
@@ -59,11 +51,9 @@ static CCPProject *defaultWorkspace;
 	id workspace = [self workspaceForKeyWindow];
     
 	id contextManager = [workspace valueForKey:@"_runContextManager"];
-	for (id scheme in[contextManager valueForKey:@"runContexts"])
-	{
+	for (id scheme in[contextManager valueForKey:@"runContexts"]) {
 		NSString *schemeName = [scheme valueForKey:@"name"];
-		if ([schemeName hasPrefix:@"Pods-"])
-		{
+		if ([schemeName hasPrefix:@"Pods-"]) {
 			[names addObject:[schemeName stringByReplacingOccurrencesOfString:@"Pods-" withString:@""]];
 		}
 	}
@@ -72,8 +62,12 @@ static CCPProject *defaultWorkspace;
 
 + (NSString *)currentWorkspaceDirectoryPath
 {
-	id workspace = [self workspaceForKeyWindow];
-	NSString *workspacePath = [[workspace valueForKey:@"representingFilePath"] valueForKey:@"_pathString"];
+    return [self directoryPathForWorkspace:[self workspaceForKeyWindow]];
+}
+
++ (NSString *)directoryPathForWorkspace:(id)workspace
+{
+    NSString *workspacePath = [[workspace valueForKey:@"representingFilePath"] valueForKey:@"_pathString"];
 	return [workspacePath stringByDeletingLastPathComponent];
 }
 
@@ -81,12 +75,15 @@ static CCPProject *defaultWorkspace;
 
 + (id)workspaceForKeyWindow
 {
-	NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") valueForKey:@"workspaceWindowControllers"];
-    
-	for (id controller in workspaceWindowControllers)
-	{
-		if ([[controller valueForKey:@"window"] valueForKey:@"isKeyWindow"])
-		{
+    return [self workspaceForWindow:[NSApp keyWindow]];
+}
+
++ (id)workspaceForWindow:(NSWindow *)window
+{
+    NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") valueForKey:@"workspaceWindowControllers"];
+
+	for (id controller in workspaceWindowControllers) {
+		if ([[controller valueForKey:@"window"] isEqual:window]) {
 			return [controller valueForKey:@"_workspace"];
 		}
 	}

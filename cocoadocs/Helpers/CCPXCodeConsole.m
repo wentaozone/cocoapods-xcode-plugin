@@ -1,50 +1,66 @@
-/*
- * #%L
- * xcode-maven-plugin
- * %%
- * Copyright (C) 2012 SAP AG
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
- */
+//
+//  CCPXCodeConsole.m
+//
+//  Copyright (c) 2013 Delisa Mason. http://delisa.me
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to
+//  deal in the Software without restriction, including without limitation the
+//  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+//  IN THE SOFTWARE.
 
 #import "CCPXCodeConsole.h"
 
-static CCPXCodeConsole *sharedInstance;
+static NSMutableDictionary *sharedInstances;
 
 @interface CCPXCodeConsole ()
 
-@property (retain) NSTextView *console;
+@property (retain, nonatomic) NSTextView *console;
+@property (strong, nonatomic) NSString *windowIdentifier;
 
 @end
 
 
 @implementation CCPXCodeConsole
 
-- (id)init
+- (id)initWithIdentifier:(NSString *)identifier
 {
-	[NSException raise:@"Singleton Implementation" format:@"Should call [CCPXCodeConsole sharedInstance] instead!"];
-	return nil;
+	if (self = [super init]) {
+        _windowIdentifier = identifier;
+	}
+
+	return self;
 }
 
-- (id)initSuper
+- (NSTextView *)console
 {
-	if (self = [super init])
-	{
-		self.console = [self findConsoleAndActivate];
-	}
-    
-	return self;
+    if (!_console) {
+        _console = [self findConsoleAndActivate];
+    }
+    return _console;
+}
+
+- (void)log:(id)obj
+{
+	[self appendText:[NSString stringWithFormat:@"%@\n", obj]];
+}
+
+- (void)error:(id)obj
+{
+	[self appendText:[NSString stringWithFormat:@"%@\n", obj]
+               color:[NSColor redColor]];
 }
 
 - (void)appendText:(NSString *)text
@@ -52,102 +68,102 @@ static CCPXCodeConsole *sharedInstance;
 	[self appendText:text color:nil];
 }
 
+- (NSWindow *)window
+{
+    for (NSWindow * window in [NSApp windows]) {
+        if ([[window description] isEqualToString:self.windowIdentifier]) {
+            return window;
+        }
+    }
+    return nil;
+}
+
 - (void)appendText:(NSString *)text color:(NSColor *)color
 {
-	if (text == nil)
-	{
-		return;
-	}
+	if (text.length == 0) return;
     
 	if (!color)
-	{
 		color = self.console.textColor;
-	}
     
 	NSMutableDictionary *attributes = [@{ NSForegroundColorAttributeName: color } mutableCopy];
 	NSFont *font = [NSFont fontWithName:@"Menlo Regular" size:11];
-	if (font)
-	{
+	if (font) {
 		attributes[NSFontAttributeName] = font;
 	}
 	NSAttributedString *as = [[NSAttributedString alloc] initWithString:text attributes:attributes];
 	NSRange theEnd = NSMakeRange(self.console.string.length, 0);
 	theEnd.location += as.string.length;
-	if (NSMaxY(self.console.visibleRect) == NSMaxY(self.console.bounds))
-	{
+	if (NSMaxY(self.console.visibleRect) == NSMaxY(self.console.bounds)) {
 		[self.console.textStorage appendAttributedString:as];
 		[self.console scrollRangeToVisible:theEnd];
-	}
-	else
-	{
+	} else {
 		[self.console.textStorage appendAttributedString:as];
 	}
 }
 
 #pragma mark - Class Methods
 
-+ (instancetype)sharedInstance
++ (instancetype)consoleForKeyWindow
 {
-	if (!sharedInstance)
-	{
-		sharedInstance = [[CCPXCodeConsole alloc] initSuper];
-	}
-    
-	return sharedInstance;
+    return [self consoleForWindow:[NSApp keyWindow]];
 }
 
-+ (void)log:(id)obj
++ (instancetype)consoleForWindow:(NSWindow *)window
 {
-	[[CCPXCodeConsole sharedInstance] appendText:[NSString stringWithFormat:@"%@\n", obj]];
-}
+    if (window == nil)  return nil;
 
-+ (void)error:(id)obj
-{
-	[[CCPXCodeConsole sharedInstance] appendText:[NSString stringWithFormat:@"%@\n", obj] color:NSColor.redColor];
+    NSString * key = [window description];
+
+    if (!sharedInstances)
+        sharedInstances = [[NSMutableDictionary alloc] init];
+
+    if (!sharedInstances[key]) {
+        CCPXCodeConsole *console = [[CCPXCodeConsole alloc] initWithIdentifier:key];
+        [sharedInstances setObject:console forKey:key];
+    }
+
+    return sharedInstances[key];
 }
 
 #pragma mark - Console Detection
 
-- (NSTextView *)findConsoleAndActivate
+
++ (NSView *)findConsoleViewInView:(NSView *)view
 {
-	Class consoleTextViewClass = NSClassFromString(@"IDEConsoleTextView");
-	NSTextView *console = (NSTextView *)[self findView:consoleTextViewClass inView:NSApplication.sharedApplication.mainWindow.contentView];
-    
-	if (console)
-	{
-		NSWindow *window = NSApplication.sharedApplication.keyWindow;
-		if ([window isKindOfClass:NSClassFromString(@"IDEWorkspaceWindow")])
-		{
-			if ([window.windowController isKindOfClass:NSClassFromString(@"IDEWorkspaceWindowController")])
-			{
-				id editorArea = [window.windowController valueForKey:@"editorArea"];
-				[editorArea performSelector:@selector(activateConsole:) withObject:self];
-			}
-		}
-	}
-    
-	NSRange range; range.location = 0; range.length = console.textStorage.length;
-	[console.textStorage deleteCharactersInRange:range];
-    
-	return console;
+    Class consoleClass = NSClassFromString(@"IDEConsoleTextView");
+    return [self findViewOfKind:consoleClass inView:view];
 }
 
-- (NSView *)findView:(Class)consoleClass inView:(NSView *)view
++ (NSView *)findViewOfKind:(Class)kind
+                    inView:(NSView *)view
 {
-	if ([view isKindOfClass:consoleClass])
-	{
+    if ([view isKindOfClass:kind]) {
 		return view;
 	}
-    
-	for (NSView *v in view.subviews)
-	{
-		NSView *result = [self findView:consoleClass inView:v];
-		if (result)
-		{
+
+	for (NSView *v in view.subviews) {
+		NSView *result = [self findViewOfKind:kind
+                                       inView:v];
+		if (result) {
 			return result;
 		}
 	}
 	return nil;
+}
+
+- (NSTextView *)findConsoleAndActivate
+{
+	NSTextView *console = (NSTextView *)[[self class] findConsoleViewInView:self.window.contentView];
+	if (console
+     && [self.window isKindOfClass:NSClassFromString(@"IDEWorkspaceWindow")]
+     && [self.window.windowController isKindOfClass:NSClassFromString(@"IDEWorkspaceWindowController")]) {
+        id editorArea = [self.window.windowController valueForKey:@"editorArea"];
+        [editorArea performSelector:@selector(activateConsole:) withObject:self];
+	}
+
+	[console.textStorage deleteCharactersInRange:NSMakeRange(0, console.textStorage.length)];
+    
+	return console;
 }
 
 @end

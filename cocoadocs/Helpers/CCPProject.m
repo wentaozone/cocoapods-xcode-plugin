@@ -1,10 +1,25 @@
 //
 //  CCPWorkspace.m
-//  CocoaPods
 //
-//  Created by Flávio Caetano on 10/30/13.
-//  Copyright (c) 2013 Delisa Mason. All rights reserved.
+//  Copyright (c) 2013 Delisa Mason. http://delisa.me
 //
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to
+//  deal in the Software without restriction, including without limitation the
+//  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+//  IN THE SOFTWARE.
 
 #import <objc/runtime.h>
 
@@ -14,20 +29,18 @@
 
 @implementation CCPProject
 
-- (id)initWithSchemeName:(NSString *)name
+- (id)initWithName:(NSString *)name
+              path:(NSString *)path
 {
-	if (self = [self init])
-	{
-		self.projectName = name;
+	if (self = [self init]) {
+		_projectName = name;
+		_podspecPath = [path stringByAppendingPathComponent:[name stringByAppendingString:@".podspec"]];
+		_directoryPath = path;
         
-		self.podspecPath = [[CCPWorkspaceManager currentWorkspaceDirectoryPath] stringByAppendingPathComponent:[name stringByAppendingString:@".podspec"]];
-        
-		self.directoryPath = [CCPWorkspaceManager currentWorkspaceDirectoryPath];
-        
-		NSString *infoPath = [self.directoryPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@-Info.plist", self.projectName, self.projectName]];
-		self.infoDictionary = [NSDictionary dictionaryWithContentsOfFile:infoPath];
-        
-		self.podfilePath = [self.directoryPath stringByAppendingPathComponent:@"Podfile"];
+		NSString *infoPath = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"%@/%@-Info.plist", _projectName, _projectName]];
+
+		_infoDictionary = [NSDictionary dictionaryWithContentsOfFile:infoPath];
+		_podfilePath = [path stringByAppendingPathComponent:@"Podfile"];
 	}
     
 	return self;
@@ -55,8 +68,7 @@
 	                                  range:range];
     
 	NSString *version = self.infoDictionary[@"CFBundleShortVersionString"];
-	if (version)
-	{
+	if (version) {
 		range.length = podspecFile.length;
 		[podspecFile replaceOccurrencesOfString:@"<Project Version>"
 		                             withString:version
@@ -80,12 +92,10 @@
 	NSString *podfileContent    = [NSString stringWithContentsOfFile:self.podfilePath encoding:NSUTF8StringEncoding error:nil];
 	NSArray *fileLines          = [podfileContent componentsSeparatedByString:@"\n"];
     
-	for (NSString *tmp in fileLines)
-	{
+	for (NSString *tmp in fileLines) {
 		NSString *line = [tmp stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         
-		if ([line rangeOfString:@"pod "].location == 0)
-		{
+		if ([line rangeOfString:@"pod "].location == 0) {
 			[podspecFile appendFormat:@"\n  s.dependencies =\t%@", line];
 		}
 	}

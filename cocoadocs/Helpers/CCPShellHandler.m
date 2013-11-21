@@ -33,8 +33,7 @@ static NSOperationQueue *operationQueue;
 
 + (void)runShellCommand:(NSString *)command withArgs:(NSArray *)args directory:(NSString *)directory completion:(void (^)(NSTask *t))completion
 {
-	if (operationQueue == nil)
-	{
+	if (operationQueue == nil) {
 		operationQueue = [NSOperationQueue new];
 	}
     
