@@ -30,7 +30,8 @@
 static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
 static NSString *DOCSET_ARCHIVE_FORMAT = @"http://cocoadocs.org/docsets/%@/docset.xar";
 static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
-
+static NSString *POD_EXECUTABLE = @"/usr/bin/pod";
+static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 
 @interface CocoaPods ()
 
@@ -59,8 +60,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (id)initWithBundle:(NSBundle *)plugin
 {
-	if (self = [super init])
-	{
+	if (self = [super init]) {
 		_bundle = plugin;
 		[self addMenuItems];
 	}
@@ -71,8 +71,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
-	if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem])
-	{
+	if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem]) {
         CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
         return [project hasPodfile];
 	}
@@ -83,8 +82,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 - (void)addMenuItems
 {
 	NSMenuItem *topMenuItem = [[NSApp mainMenu] itemWithTitle:@"Product"];
-	if (topMenuItem)
-	{
+	if (topMenuItem) {
 		NSMenuItem *cocoaPodsMenu = [[NSMenuItem alloc] initWithTitle:@"CocoaPods" action:nil keyEquivalent:@""];
 		cocoaPodsMenu.submenu = [[NSMenu alloc] initWithTitle:@"CocoaPods"];
         
@@ -144,12 +142,10 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
     NSString *podFilePath = project.podfilePath;
     
-	if (! [project hasPodfile])
-	{
+	if (! [project hasPodfile]) {
 		NSError *error = nil;
 		[[NSFileManager defaultManager] copyItemAtPath:[self.bundle pathForResource:@"DefaultPodfile" ofType:@""] toPath:podFilePath error:&error];
-		if (error)
-		{
+		if (error) {
 			[[NSAlert alertWithError:error] runModal];
 		}
 	}
@@ -163,8 +159,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
     CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
     NSString *podspecPath = project.podspecPath;
     
-	if (! [project hasPodspecFile])
-    {
+	if (! [project hasPodspecFile]) {
         NSString *podspecTemplate = [NSString stringWithContentsOfFile:[self.bundle pathForResource:@"DefaultPodspec" ofType:@""]
                                                               encoding:NSUTF8StringEncoding error:nil];
         
@@ -177,20 +172,18 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (void)integratePods
 {
-	[CCPShellHandler runShellCommand:@"/usr/bin/pod"
+	[CCPShellHandler runShellCommand:POD_EXECUTABLE
 	                        withArgs:@[@"install"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion: ^(NSTask *t) {
                               if ([self shouldInstallDocsForPods])
-                              {
                                   [self installOrUpdateDocSetsForPods];
-                              }
                           }];
 }
 
 - (void)outdatedPods
 {
-	[CCPShellHandler runShellCommand:@"/usr/bin/pod"
+	[CCPShellHandler runShellCommand:POD_EXECUTABLE
 	                        withArgs:@[@"outdated"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion:nil];
@@ -198,7 +191,7 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (void)installCocoaPods
 {
-	[CCPShellHandler runShellCommand:@"/usr/bin/gem"
+	[CCPShellHandler runShellCommand:GEM_EXECUTABLE
 	                        withArgs:@[@"install", @"cocoapods"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion:nil];
@@ -206,12 +199,10 @@ static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 
 - (void)installOrUpdateDocSetsForPods
 {
-	for (NSString *podName in[CCPWorkspaceManager installedPodNamesInCurrentWorkspace])
-	{
+	for (NSString *podName in[CCPWorkspaceManager installedPodNamesInCurrentWorkspace]) {
 		NSURL *docsetURL = [NSURL URLWithString:[NSString stringWithFormat:DOCSET_ARCHIVE_FORMAT, podName]];
 		[NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:docsetURL] queue:[NSOperationQueue mainQueue] completionHandler: ^(NSURLResponse *response, NSData *xarData, NSError *connectionError) {
-		    if (xarData)
-		    {
+		    if (xarData) {
 		        NSString *tmpFilePath = [NSString pathWithComponents:@[NSTemporaryDirectory(), [NSString stringWithFormat:@"%@.xar", podName]]];
 		        [xarData writeToFile:tmpFilePath atomically:YES];
 		        [self extractAndInstallDocsAtPath:tmpFilePath];
