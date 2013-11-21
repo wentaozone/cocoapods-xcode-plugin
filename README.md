@@ -5,6 +5,8 @@ Manage your dependencies, with minimal command line hack-fu
 ## Features
 
 - Downloads and integrates CocoaPods listed in a project's Podfile
+- Creates podspecs from a template
+- Shows command output in the window console
 - Installs documentation (from CocoaDocs) for the CocoaPods used in the open Xcode workspace
 - Downloads, updates, and installs CocoaPods
 
