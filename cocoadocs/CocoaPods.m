@@ -39,9 +39,6 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 @property (nonatomic, strong) NSMenuItem *outdatedPodsItem;
 @property (nonatomic, strong) NSMenuItem *installDocsItem;
 
-@property (nonatomic, strong) NSMenuItem *createPodfileItem;
-@property (nonatomic, strong) NSMenuItem *createPodspecItem;
-
 @property (nonatomic, strong) NSBundle *bundle;
 
 @end
@@ -98,7 +95,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		                                                   action:@selector(checkForOutdatedPods)
 		                                            keyEquivalent:@""];
         
-		self.createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podfile"
+		NSMenuItem *createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podfile"
 		                                                    action:@selector(createPodfile)
 		                                             keyEquivalent:@""];
         
@@ -106,7 +103,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		                                                         action:@selector(installCocoaPods)
 		                                                  keyEquivalent:@""];
         
-		self.createPodspecItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podspec"
+		NSMenuItem *createPodspecItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podspec"
 		                                                    action:@selector(createPodspecFile)
 		                                             keyEquivalent:@""];
         
@@ -114,13 +111,13 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		[self.installPodsItem setTarget:self];
 		[self.outdatedPodsItem setTarget:self];
 		[updateCPodsItem setTarget:self];
-		[self.createPodfileItem setTarget:self];
-		[self.createPodspecItem setTarget:self];
+		[createPodfileItem setTarget:self];
+		[createPodspecItem setTarget:self];
         
 		[[cocoaPodsMenu submenu] addItem:self.installPodsItem];
 		[[cocoaPodsMenu submenu] addItem:self.outdatedPodsItem];
-		[[cocoaPodsMenu submenu] addItem:self.createPodfileItem];
-        [[cocoaPodsMenu submenu] addItem:self.createPodspecItem];
+		[[cocoaPodsMenu submenu] addItem:createPodfileItem];
+        [[cocoaPodsMenu submenu] addItem:createPodspecItem];
 		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
         [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
         [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
