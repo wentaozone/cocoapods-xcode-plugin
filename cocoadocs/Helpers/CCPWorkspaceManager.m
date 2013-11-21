@@ -29,22 +29,6 @@ static NSString *PODFILE = @"Podfile";
 
 @implementation CCPWorkspaceManager
 
-+ (CCPProject *)defaultWorkspace
-{
-	id workspace = [self workspaceForKeyWindow];
-    
-	id contextManager = [workspace valueForKey:@"_runContextManager"];
-	for (id scheme in[contextManager valueForKey:@"runContexts"]) {
-		NSString *schemeName = [scheme valueForKey:@"name"];
-		if (![schemeName hasPrefix:@"Pods-"]) {
-            NSString *path = [self directoryPathForWorkspace:workspace];
-			return [[CCPProject alloc] initWithName:schemeName path:path];
-		}
-	}
-    
-	return nil;
-}
-
 + (NSArray *)installedPodNamesInCurrentWorkspace
 {
 	NSMutableArray *names = [NSMutableArray new];

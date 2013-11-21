@@ -1,5 +1,5 @@
 //
-//  Cocoadocs.m
+//  CocoaPods.m
 //
 //  Copyright (c) 2013 Delisa Mason. http://delisa.me
 //
@@ -72,8 +72,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
 	if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem]) {
-        CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
-        return [project hasPodfile];
+        return [[CCPProject projectForKeyWindow] hasPodfile];
 	}
     
 	return YES;
@@ -96,7 +95,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		                                           keyEquivalent:@""];
         
 		self.outdatedPodsItem = [[NSMenuItem alloc] initWithTitle:@"Check for Outdated Pods"
-		                                                   action:@selector(outdatedPods)
+		                                                   action:@selector(checkForOutdatedPods)
 		                                            keyEquivalent:@""];
         
 		self.createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podfile"
@@ -121,11 +120,11 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		[[cocoaPodsMenu submenu] addItem:self.installPodsItem];
 		[[cocoaPodsMenu submenu] addItem:self.outdatedPodsItem];
 		[[cocoaPodsMenu submenu] addItem:self.createPodfileItem];
+        [[cocoaPodsMenu submenu] addItem:self.createPodspecItem];
 		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
+        [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
+        [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
 		[[cocoaPodsMenu submenu] addItem:self.installDocsItem];
-		[[cocoaPodsMenu submenu] addItem:updateCPodsItem];
-		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
-		[[cocoaPodsMenu submenu] addItem:self.createPodspecItem];
 		[[topMenuItem submenu] insertItem:cocoaPodsMenu atIndex:[topMenuItem.submenu indexOfItemWithTitle:@"Build For"]];
 	}
 }
@@ -139,7 +138,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 
 - (void)createPodfile
 {
-    CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
+    CCPProject *project = [CCPProject projectForKeyWindow];
     NSString *podFilePath = project.podfilePath;
     
 	if (! [project hasPodfile]) {
@@ -156,7 +155,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 
 - (void)createPodspecFile
 {
-    CCPProject *project = [CCPWorkspaceManager defaultWorkspace];
+    CCPProject *project = [CCPProject projectForKeyWindow];
     NSString *podspecPath = project.podspecPath;
     
 	if (! [project hasPodspecFile]) {
@@ -181,7 +180,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
                           }];
 }
 
-- (void)outdatedPods
+- (void)checkForOutdatedPods
 {
 	[CCPShellHandler runShellCommand:POD_EXECUTABLE
 	                        withArgs:@[@"outdated"]

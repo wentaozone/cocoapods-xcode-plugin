@@ -21,16 +21,13 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#import <Foundation/Foundation.h>
-
-@class CCPProject;
-
 @interface CCPWorkspaceManager : NSObject
 
-+ (CCPProject *)defaultWorkspace;
++ (id)workspaceForKeyWindow;
 
 + (NSArray *)installedPodNamesInCurrentWorkspace;
 
 + (NSString *)currentWorkspaceDirectoryPath;
++ (NSString *)directoryPathForWorkspace:(id)workspace;
 
 @end

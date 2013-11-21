@@ -1,5 +1,5 @@
 //
-//  Cocoadocs.h
+//  CocoaPods.h
 //
 //  Copyright (c) 2013 Delisa Mason. http://delisa.me
 //

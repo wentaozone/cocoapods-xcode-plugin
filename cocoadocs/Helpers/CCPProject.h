@@ -32,6 +32,8 @@
 
 @property (nonatomic, strong) NSDictionary *infoDictionary;
 
++ (instancetype)projectForKeyWindow;
+
 - (id)initWithName:(NSString *)name
               path:(NSString *)path;
 

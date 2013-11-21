@@ -29,6 +29,22 @@
 
 @implementation CCPProject
 
++ (instancetype)projectForKeyWindow
+{
+	id workspace = [CCPWorkspaceManager workspaceForKeyWindow];
+
+	id contextManager = [workspace valueForKey:@"_runContextManager"];
+	for (id scheme in[contextManager valueForKey:@"runContexts"]) {
+		NSString *schemeName = [scheme valueForKey:@"name"];
+		if (![schemeName hasPrefix:@"Pods-"]) {
+            NSString *path = [CCPWorkspaceManager directoryPathForWorkspace:workspace];
+			return [[CCPProject alloc] initWithName:schemeName path:path];
+		}
+	}
+
+	return nil;
+}
+
 - (id)initWithName:(NSString *)name
               path:(NSString *)path
 {
