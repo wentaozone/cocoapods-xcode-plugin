@@ -19,10 +19,18 @@ Manage your dependencies, with minimal command line hack-fu
 - CocoaPods 0.22.1+
 
 
-## Installation
+## Install
 
 Install via [Alcatraz](http://mneorr.github.io/Alcatraz/)
 
 OR
 
 Clone and build the project, then restart Xcode.
+
+## Uninstall
+
+Uninstall via [Alcatraz](http://mneorr.github.io/Alcatraz/)
+
+OR
+
+Run `rm ~/Library/Application\ Support/Developer/Shared/Xcode/Plug-ins/CocoaPods.xcplugin/`
