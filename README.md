@@ -33,4 +33,4 @@ Uninstall via [Alcatraz](http://mneorr.github.io/Alcatraz/)
 
 OR
 
-Run `rm ~/Library/Application\ Support/Developer/Shared/Xcode/Plug-ins/CocoaPods.xcplugin/`
+Run `rm -r ~/Library/Application\ Support/Developer/Shared/Xcode/Plug-ins/CocoaPods.xcplugin/`
