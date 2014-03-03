@@ -21,7 +21,7 @@ Manage your dependencies, with minimal command line hack-fu
 
 ## Install
 
-Install via [Alcatraz](http://mneorr.github.io/Alcatraz/)
+Install via [Alcatraz](http://alcatraz.io//)
 
 OR
 
@@ -29,7 +29,7 @@ Clone and build the project, then restart Xcode.
 
 ## Uninstall
 
-Uninstall via [Alcatraz](http://mneorr.github.io/Alcatraz/)
+Uninstall via [Alcatraz](http://alcatraz.io/)
 
 OR
 
