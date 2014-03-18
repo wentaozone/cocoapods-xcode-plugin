@@ -39,6 +39,10 @@ static NSOperationQueue *operationQueue;
     
 	NSTask *task = [NSTask new];
     
+    NSMutableDictionary * environment = [[[NSProcessInfo processInfo] environment] mutableCopy];
+    environment[@"LC_ALL"]=@"en_US.UTF-8";
+    [task setEnvironment:environment];
+    
 	task.currentDirectoryPath = directory;
 	task.launchPath = command;
 	task.arguments  = args;
