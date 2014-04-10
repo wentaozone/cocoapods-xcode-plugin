@@ -16,7 +16,7 @@ Manage your dependencies, with minimal command line hack-fu
 ## Prerequisites
 
 - Xcode 5
-- CocoaPods 0.22.1+
+- CocoaPods 0.22.1+, installed to the system gemset using `sudo gem install cocoapods`
 
 
 ## Install
