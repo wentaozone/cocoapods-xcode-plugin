@@ -21,7 +21,7 @@ Manage your dependencies, with minimal command line hack-fu
 
 ## Install
 
-Install via [Alcatraz](http://alcatraz.io//)
+Install via [Alcatraz](http://alcatraz.io/)
 
 OR
 
