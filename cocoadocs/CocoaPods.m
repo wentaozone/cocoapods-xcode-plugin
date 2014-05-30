@@ -94,7 +94,7 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 		                                           keyEquivalent:@""];
 		self.installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
         
-		self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods"
+		self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install Pods"
 		                                                  action:@selector(integratePods)
 		                                           keyEquivalent:@""];
         
@@ -105,10 +105,6 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 		NSMenuItem *createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podfile"
 		                                                    action:@selector(createPodfile)
 		                                             keyEquivalent:@""];
-        
-		NSMenuItem *updateCPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install/Update CocoaPods"
-		                                                         action:@selector(installCocoaPods)
-		                                                  keyEquivalent:@""];
         
 		NSMenuItem *createPodspecItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podspec"
 		                                                    action:@selector(createPodspecFile)
@@ -128,7 +124,6 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 		[self.installDocsItem setTarget:self];
 		[self.installPodsItem setTarget:self];
 		[self.outdatedPodsItem setTarget:self];
-		[updateCPodsItem setTarget:self];
 		[createPodfileItem setTarget:self];
 		[createPodspecItem setTarget:self];
         [self.pathItem setTarget:self];
@@ -138,8 +133,6 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 		[[cocoaPodsMenu submenu] addItem:createPodfileItem];
         [[cocoaPodsMenu submenu] addItem:createPodspecItem];
 		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
-        [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
-        [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
 		[[cocoaPodsMenu submenu] addItem:self.installDocsItem];
         [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
         [[cocoaPodsMenu submenu] addItem:self.pathItem];
