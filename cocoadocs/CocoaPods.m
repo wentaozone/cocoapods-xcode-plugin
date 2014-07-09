@@ -30,14 +30,20 @@
 static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
 static NSString *DOCSET_ARCHIVE_FORMAT = @"http://cocoadocs.org/docsets/%@/docset.xar";
 static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
-static NSString *POD_EXECUTABLE = @"/usr/bin/pod";
-static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
+static NSString *POD_EXECUTABLE = @"pod";
+static NSString *GEM_EXECUTABLE = @"gem";
+static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 
-@interface CocoaPods ()
+
+@interface CocoaPods () <NSTextFieldDelegate>
 
 @property (nonatomic, strong) NSMenuItem *installPodsItem;
 @property (nonatomic, strong) NSMenuItem *outdatedPodsItem;
 @property (nonatomic, strong) NSMenuItem *installDocsItem;
+
+@property (nonatomic, strong) NSMenuItem *pathItem;
+@property (nonatomic, strong) IBOutlet NSTextField *pathField;
+@property (nonatomic, strong) IBOutlet NSView *pathView;
 
 @property (nonatomic, strong) NSBundle *bundle;
 
@@ -59,6 +65,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 {
 	if (self = [super init]) {
 		_bundle = plugin;
+        [self loadCustomGemPath];
 		[self addMenuItems];
 	}
 	return self;
@@ -87,7 +94,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		                                           keyEquivalent:@""];
 		self.installDocsItem.state = [self shouldInstallDocsForPods] ? NSOnState : NSOffState;
         
-		self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Integrate Pods"
+		self.installPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install Pods"
 		                                                  action:@selector(integratePods)
 		                                           keyEquivalent:@""];
         
@@ -99,31 +106,77 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 		                                                    action:@selector(createPodfile)
 		                                             keyEquivalent:@""];
         
-		NSMenuItem *updateCPodsItem = [[NSMenuItem alloc] initWithTitle:@"Install/Update CocoaPods"
-		                                                         action:@selector(installCocoaPods)
-		                                                  keyEquivalent:@""];
-        
 		NSMenuItem *createPodspecItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podspec"
 		                                                    action:@selector(createPodspecFile)
 		                                             keyEquivalent:@""];
+
+        [[self bundle] loadNibNamed:@"PodPathView" owner:self topLevelObjects:nil];
+        self.pathItem = [[NSMenuItem alloc] initWithTitle:@"Set POD_PATH"
+                                                             action:@selector(setPATH)
+                                                            keyEquivalent:@""];
+
+        if ([self customGemPath].length > 0) {
+            self.pathField.stringValue = [self customGemPath];
+        }
+        [self.pathItem setView:self.pathView];
+
         
 		[self.installDocsItem setTarget:self];
 		[self.installPodsItem setTarget:self];
 		[self.outdatedPodsItem setTarget:self];
-		[updateCPodsItem setTarget:self];
 		[createPodfileItem setTarget:self];
 		[createPodspecItem setTarget:self];
+        [self.pathItem setTarget:self];
         
 		[[cocoaPodsMenu submenu] addItem:self.installPodsItem];
 		[[cocoaPodsMenu submenu] addItem:self.outdatedPodsItem];
 		[[cocoaPodsMenu submenu] addItem:createPodfileItem];
         [[cocoaPodsMenu submenu] addItem:createPodspecItem];
 		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
-        [[cocoaPodsMenu submenu] addItem:updateCPodsItem];
-        [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
 		[[cocoaPodsMenu submenu] addItem:self.installDocsItem];
+        [[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
+        [[cocoaPodsMenu submenu] addItem:self.pathItem];
+
 		[[topMenuItem submenu] insertItem:cocoaPodsMenu atIndex:[topMenuItem.submenu indexOfItemWithTitle:@"Build For"]];
 	}
+}
+
+- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor {
+    NSLog(@"endEditing : %@" , fieldEditor.string);
+    [self updateGemPath:fieldEditor.string];
+    return YES;
+}
+
+- (void)updateGemPath:(NSString *)string {
+    if (string.length == 0) {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:GEM_PATH_KEY];
+    } else {
+        [[NSUserDefaults standardUserDefaults] setObject:string forKey:GEM_PATH_KEY];
+    }
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    [self loadCustomGemPath];
+}
+
+- (void)loadCustomGemPath {
+    NSString *newPath = [self customGemPath];
+    if (newPath.length > 0) {
+        char *oldPath = getenv("PATH");
+        newPath = [NSString stringWithFormat:@"%@:%s", newPath, oldPath];
+        setenv("PATH", [newPath UTF8String], 1);
+    }
+}
+
+- (NSString *)customGemPath {
+    return [[NSUserDefaults standardUserDefaults] objectForKey:GEM_PATH_KEY];
+}
+
+- (NSString *)gemPath {
+    NSString *path = [self customGemPath];
+    if (path.length == 0) {
+        path = @"/usr/bin";
+    }
+    return path;
 }
 
 #pragma mark - Menu Actions
@@ -168,7 +221,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 
 - (void)integratePods
 {
-	[CCPShellHandler runShellCommand:POD_EXECUTABLE
+	[CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:POD_EXECUTABLE]
 	                        withArgs:@[@"install"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion: ^(NSTask *t) {
@@ -179,7 +232,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 
 - (void)checkForOutdatedPods
 {
-	[CCPShellHandler runShellCommand:POD_EXECUTABLE
+	[CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:POD_EXECUTABLE]
 	                        withArgs:@[@"outdated"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion:nil];
@@ -187,7 +240,7 @@ static NSString *GEM_EXECUTABLE = @"/usr/bin/gem";
 
 - (void)installCocoaPods
 {
-	[CCPShellHandler runShellCommand:GEM_EXECUTABLE
+	[CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:GEM_EXECUTABLE]
 	                        withArgs:@[@"install", @"cocoapods"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion:nil];
