@@ -49,6 +49,11 @@ static NSOperationQueue *operationQueue;
     
     
 	CCPRunOperation *operation = [[CCPRunOperation alloc] initWithTask:task];
+    operation.completionBlock = ^{
+        if (completion) {
+            completion(task);
+        }
+    };
 	[operationQueue addOperation:operation];
 }
 

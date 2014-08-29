@@ -129,4 +129,10 @@
 	return [[NSFileManager defaultManager] fileExistsAtPath:filePath];
 }
 
+#pragma mark - Overriden getters
+
+- (NSString *)workspacePath {
+    return [NSString stringWithFormat:@"%@/%@.xcworkspace", self.directoryPath, self.projectName];
+}
+
 @end

@@ -28,6 +28,8 @@
 @property (nonatomic, strong) NSString *podspecPath;
 @property (nonatomic, strong) NSString *podfilePath;
 
+@property (nonatomic, readonly) NSString *workspacePath;
+
 @property (nonatomic, strong) NSString *projectName;
 
 @property (nonatomic, strong) NSDictionary *infoDictionary;
