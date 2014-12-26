@@ -27,10 +27,17 @@
 #import "CCPDocumentationManager.h"
 #import "CCPProject.h"
 
+@interface NSObject (IDEKit)
++ (NSArray *)workspaceWindowControllers;
+- (void)close;
+@end
+
+
 static NSString *DMMCocoaPodsIntegrateWithDocsKey = @"DMMCocoaPodsIntegrateWithDocs";
 static NSString *DOCSET_ARCHIVE_FORMAT = @"http://cocoadocs.org/docsets/%@/docset.xar";
 static NSString *XAR_EXECUTABLE = @"/usr/bin/xar";
 static NSString *POD_EXECUTABLE = @"pod";
+static NSString *OPEN_EXECUTABLE = @"/usr/bin/open";
 static NSString *GEM_EXECUTABLE = @"gem";
 static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 
@@ -39,6 +46,7 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 
 @property (nonatomic, strong) NSMenuItem *installPodsItem;
 @property (nonatomic, strong) NSMenuItem *outdatedPodsItem;
+@property (nonatomic, strong) NSMenuItem *updatePodsItem;
 @property (nonatomic, strong) NSMenuItem *installDocsItem;
 
 @property (nonatomic, strong) NSMenuItem *pathItem;
@@ -75,7 +83,7 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
-	if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem]) {
+	if ([menuItem isEqual:self.installPodsItem] || [menuItem isEqual:self.outdatedPodsItem] || [menuItem isEqual:self.updatePodsItem]) {
         return [[CCPProject projectForKeyWindow] hasPodfile];
 	}
     
@@ -99,9 +107,13 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 		                                           keyEquivalent:@""];
         
 		self.outdatedPodsItem = [[NSMenuItem alloc] initWithTitle:@"Check for Outdated Pods"
-		                                                   action:@selector(checkForOutdatedPods)
-		                                            keyEquivalent:@""];
-        
+														   action:@selector(checkForOutdatedPods)
+													keyEquivalent:@""];
+		
+		self.updatePodsItem = [[NSMenuItem alloc] initWithTitle:@"Update Pods"
+														   action:@selector(updatePods)
+													keyEquivalent:@""];
+		
 		NSMenuItem *createPodfileItem = [[NSMenuItem alloc] initWithTitle:@"Create/Edit Podfile"
 		                                                    action:@selector(createPodfile)
 		                                             keyEquivalent:@""];
@@ -124,12 +136,14 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 		[self.installDocsItem setTarget:self];
 		[self.installPodsItem setTarget:self];
 		[self.outdatedPodsItem setTarget:self];
+		[self.updatePodsItem setTarget:self];
 		[createPodfileItem setTarget:self];
 		[createPodspecItem setTarget:self];
         [self.pathItem setTarget:self];
         
 		[[cocoaPodsMenu submenu] addItem:self.installPodsItem];
 		[[cocoaPodsMenu submenu] addItem:self.outdatedPodsItem];
+		[[cocoaPodsMenu submenu] addItem:self.updatePodsItem];
 		[[cocoaPodsMenu submenu] addItem:createPodfileItem];
         [[cocoaPodsMenu submenu] addItem:createPodspecItem];
 		[[cocoaPodsMenu submenu] addItem:[NSMenuItem separatorItem]];
@@ -221,21 +235,89 @@ static NSString *GEM_PATH_KEY = @"GEM_PATH_KEY";
 
 - (void)integratePods
 {
-	[CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:POD_EXECUTABLE]
+    CCPProject *project = [CCPProject projectForKeyWindow];
+    BOOL isDir;
+    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:project.workspacePath isDirectory:&isDir];
+
+    [CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:POD_EXECUTABLE]
 	                        withArgs:@[@"install"]
 	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
 	                      completion: ^(NSTask *t) {
                               if ([self shouldInstallDocsForPods])
                                   [self installOrUpdateDocSetsForPods];
+                              // Only prompt if this is the first time
+                              if (!fileExists || !isDir) {
+                                  dispatch_async(dispatch_get_main_queue(), ^{
+                                      [self showReopenWorkspaceMessageForProject:project];
+                                  });
+                              }
                           }];
+
+}
+
+- (void)showReopenWorkspaceMessageForProject:(CCPProject *)project {
+    NSBeginAlertSheet(
+            @"Do you want to open the workspace?",
+            @"Yes",
+            nil,
+            @"No",
+            nil,
+            self,
+            @selector(sheetDidEndShouldReopenWorkspace:returnCode:contextInfo:),
+            NULL,
+            (__bridge_retained void *)project,
+            @"[!] From now on use `%@.xcworkspace`.", project.projectName);
+
+}
+
+- (void)sheetDidEndShouldReopenWorkspace:(NSWindow *)sheet
+                              returnCode:(NSInteger)returnCode
+                             contextInfo:(void *)contextInfo
+{
+    [sheet close];
+    if (returnCode == NSAlertDefaultReturn) {
+        [self closeCurrentWorkspace];
+
+        CCPProject *project = (__bridge_transfer id) contextInfo;
+        [self openWorkspaceForProject:project];
+    }
+}
+
+- (void)openWorkspaceForProject:(CCPProject *)project {
+    NSString *directoryPath = project.directoryPath;
+    NSString *workspacePath = project.workspacePath;
+
+    [CCPShellHandler runShellCommand:OPEN_EXECUTABLE
+                            withArgs:@[workspacePath]
+                           directory:directoryPath
+                          completion:nil];
+}
+
+- (void)closeCurrentWorkspace {
+    NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") workspaceWindowControllers];
+    [workspaceWindowControllers enumerateObjectsUsingBlock:^(id controller, NSUInteger idx, BOOL *stop) {
+        if ([[controller valueForKey:@"window"] isMainWindow]) {
+            id workspaceDocument = [[controller valueForKey:@"window"] document];
+            NSLog(@"Closing workspace : %@", workspaceDocument);
+            [workspaceDocument performSelectorOnMainThread:@selector(close) withObject:nil waitUntilDone:YES];
+        }
+    }];
 }
 
 - (void)checkForOutdatedPods
 {
 	[CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:POD_EXECUTABLE]
-	                        withArgs:@[@"outdated"]
-	                       directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
-	                      completion:nil];
+							withArgs:@[@"outdated"]
+						   directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
+						  completion:nil];
+}
+
+- (void)updatePods
+{
+	[CCPShellHandler runShellCommand:[[self gemPath]stringByAppendingPathComponent:POD_EXECUTABLE]
+							withArgs:@[@"update"]
+						   directory:[CCPWorkspaceManager currentWorkspaceDirectoryPath]
+						  completion:nil];
 }
 
 - (void)installCocoaPods
